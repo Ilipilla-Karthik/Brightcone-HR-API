@@ -1,0 +1,17 @@
+pub mod applications;
+pub mod assets;
+pub mod attendance;
+pub mod auth;
+pub mod candidates;
+pub mod dashboard;
+pub mod departments;
+pub mod documents;
+pub mod employees;
+pub mod helpdesk;
+pub mod interviews;
+pub mod jobs;
+pub mod leave;
+pub mod offers;
+pub mod performance;
+pub mod referrals;
+pub mod resignation;

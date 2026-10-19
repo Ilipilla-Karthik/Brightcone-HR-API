@@ -1,0 +1,70 @@
+# Loco configuration file documentation
+
+# Application logging configuration
+logger:
+  # Enable or disable logging.
+  enable: true
+  # Enable pretty backtrace (sets RUST_BACKTRACE=1)
+  pretty_backtrace: true
+  # Log level, options: trace, debug, info, warn or error.
+  level: <%= get_env(name="LOG_LEVEL", default="debug") %>
+  # Define the logging format. options: compact, pretty or json
+  format: compact
+
+# Web server configuration
+server:
+  # Port on which the server will listen.
+  port: <%= get_env(name="PORT", default="5155") %>
+  # Binding for the server
+  binding: <%= get_env(name="BINDING", default="127.0.0.1") %>
+  # The UI hostname or IP address that mailers will point to.
+  host: http://localhost:5155
+  middlewares:
+    cors:
+      enable: true
+      allow_origins:
+        - "http://localhost:5173"
+        - "http://127.0.0.1:5173"
+      allow_headers:
+        - "accept"
+        - "authorization"
+        - "content-type"
+      allow_methods:
+        - "GET"
+        - "POST"
+        - "PUT"
+        - "PATCH"
+        - "DELETE"
+        - "OPTIONS"
+      allow_credentials: true
+
+# Worker Configuration
+workers:
+  mode: BackgroundAsync
+
+# Mailer Configuration.
+mailer:
+  smtp:
+    enable: false
+    host: <%= get_env(name="MAILER_HOST", default="localhost") %>
+    port: 1025
+    secure: false
+
+# Database Configuration
+database:
+  uri: <%= get_env(name="DATABASE_URL", default="postgres://postgres:Cherrybuddu%401526@127.0.0.1:5435/brightcone_hr_portal") %>
+  enable_logging: <%= get_env(name="DB_LOGGING", default="false") %>
+  connect_timeout: <%= get_env(name="DB_CONNECT_TIMEOUT", default="5000") %>
+  idle_timeout: <%= get_env(name="DB_IDLE_TIMEOUT", default="5000") %>
+  min_connections: <%= get_env(name="DB_MIN_CONNECTIONS", default="1") %>
+  max_connections: <%= get_env(name="DB_MAX_CONNECTIONS", default="10") %>
+  auto_migrate: false
+  dangerously_truncate: false
+  dangerously_recreate: false
+
+# Authentication Configuration
+auth:
+  jwt:
+    secret: y2dMj3YjaprfSmdkXDhB
+    expiration: 604800 # 7 days
+
