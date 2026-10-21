@@ -19,4 +19,6 @@ pub use super::performance_goals::Entity as PerformanceGoals;
 pub use super::performance_reviews::Entity as PerformanceReviews;
 pub use super::referrals::Entity as Referrals;
 pub use super::resignation_requests::Entity as ResignationRequests;
+pub use super::review_cycles::Entity as ReviewCycles;
+pub use super::cycle_reviews::Entity as CycleReviews;
 pub use super::users::Entity as Users;

@@ -137,6 +137,8 @@ pub fn get_entity_registry() -> Vec<RegisteredEntity> {
         register_entity::<Courses>(),
         register_entity::<CourseAssignments>(),
         register_entity::<CourseReminders>(),
+        register_entity::<ReviewCycles>(),
+        register_entity::<CycleReviews>(),
     ]
 }
 
@@ -274,12 +276,16 @@ async fn run_sync_inner(
         }
     }
 
-    // 3. Ensure required composite constraints and domain indexes for REC-09
+    // 3. Ensure required composite constraints and domain indexes for REC-09 and REC-12
     let domain_indexes = [
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_course_assignments_unique ON course_assignments (course_id, employee_id);",
         "CREATE INDEX IF NOT EXISTS idx_course_assignments_emp ON course_assignments (employee_id);",
         "CREATE INDEX IF NOT EXISTS idx_course_reminders_assign ON course_reminders (assignment_id);",
         "CREATE INDEX IF NOT EXISTS idx_course_reminders_created ON course_reminders (created_at);",
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_cycle_reviews_unique ON cycle_reviews (cycle_id, employee_id);",
+        "CREATE INDEX IF NOT EXISTS idx_cycle_reviews_cycle ON cycle_reviews (cycle_id);",
+        "CREATE INDEX IF NOT EXISTS idx_cycle_reviews_emp ON cycle_reviews (employee_id);",
+        "CREATE INDEX IF NOT EXISTS idx_review_cycles_status ON review_cycles (status);",
     ];
     for sql in domain_indexes {
         if let Err(e) = db.execute_unprepared(sql).await {
@@ -302,6 +308,54 @@ async fn run_sync_inner(
         "[SCHEMA-SYNC] Verification passed for all {} registered entities.",
         registry.len()
     );
+
+    // 5. Seed initial review cycle if none exist
+    let seed_cycle_sql = "INSERT INTO review_cycles (id, name, stage, self_review_due, status, created_at, updated_at) VALUES ('CYC-H2-2026', 'H2 2026 review', 2, '2026-11-15', 'Active', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ON CONFLICT (id) DO NOTHING;";
+    let _ = db.execute_unprepared(seed_cycle_sql).await;
+
+    let seed_reviews_sql = r#"
+        INSERT INTO cycle_reviews (id, cycle_id, employee_id, employee_name, manager_name, department, self_review_status, self_rating, goals_count, rating, recommended_increment_percentage, created_at, updated_at)
+        SELECT
+            'REV-' || e.employee_code || '-H2-2026',
+            'CYC-H2-2026',
+            e.employee_code,
+            e.full_name,
+            COALESCE(e.manager_name, '—'),
+            e.department,
+            CASE 
+                WHEN e.full_name IN ('Rahul Varma', 'Sneha Iyer', 'Arjun Mehta', 'Kavita Nair') THEN 'Submitted'
+                ELSE 'Not submitted'
+            END,
+            CASE
+                WHEN e.full_name = 'Rahul Varma' THEN '4.2'
+                WHEN e.full_name = 'Sneha Iyer' THEN '4.8'
+                WHEN e.full_name = 'Arjun Mehta' THEN '4.0'
+                WHEN e.full_name = 'Kavita Nair' THEN '3.9'
+                ELSE NULL
+            END,
+            CASE
+                WHEN e.full_name = 'Rahul Varma' THEN 3
+                WHEN e.full_name = 'Ananya Rao' THEN 1
+                ELSE 2
+            END,
+            CASE
+                WHEN e.full_name = 'Rahul Varma' THEN 'Exceeds expectations'
+                WHEN e.full_name = 'Sneha Iyer' THEN 'Outstanding'
+                ELSE NULL
+            END,
+            CASE
+                WHEN e.full_name = 'Rahul Varma' THEN 10.0
+                WHEN e.full_name = 'Sneha Iyer' THEN 15.0
+                ELSE NULL
+            END,
+            CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP
+        FROM employees e
+        WHERE e.status != 'Inactive'
+        ON CONFLICT (cycle_id, employee_id) DO NOTHING;
+    "#;
+    let _ = db.execute_unprepared(seed_reviews_sql).await;
+
     info!("[SCHEMA-SYNC] Schema synchronization completed successfully.");
     Ok(())
 }

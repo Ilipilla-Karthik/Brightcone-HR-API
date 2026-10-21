@@ -127,6 +127,7 @@ pub struct RemindResponse {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct MyAssignmentItem {
     pub assignment_id: String,
+    pub id: String,
     pub course_id: String,
     pub course_title: String,
     pub course_type: String,
@@ -581,7 +582,8 @@ pub async fn my_learning(
         .filter_map(|a| {
             let c = course_map.get(&a.course_id)?;
             Some(MyAssignmentItem {
-                assignment_id: a.id,
+                assignment_id: a.id.clone(),
+                id: a.id,
                 course_id: c.id.clone(),
                 course_title: c.title.clone(),
                 course_type: c.course_type.clone(),
@@ -642,7 +644,27 @@ pub async fn update_assignment_progress(
     active.updated_at = Set(now);
 
     let updated = active.update(&ctx.db).await?;
-    format::json(updated)
+
+    let course = CoursesEntity::find_by_id(&updated.course_id).one(&ctx.db).await?;
+    let (course_title, course_type, duration, due_date) = match course {
+        Some(c) => (c.title, c.course_type, c.duration, c.due_date),
+        None => ("Course".to_string(), "Mandatory".to_string(), "—".to_string(), None),
+    };
+
+    let res = MyAssignmentItem {
+        assignment_id: updated.id.clone(),
+        id: updated.id,
+        course_id: updated.course_id,
+        course_title,
+        course_type,
+        duration,
+        due_date,
+        progress: updated.progress,
+        status: updated.status,
+        completed_at: updated.completed_at.map(|t| t.to_rfc3339()),
+    };
+
+    format::json(res)
 }
 
 #[debug_handler]

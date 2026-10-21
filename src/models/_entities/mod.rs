@@ -20,4 +20,6 @@ pub mod performance_reviews;
 pub mod prelude;
 pub mod referrals;
 pub mod resignation_requests;
+pub mod review_cycles;
+pub mod cycle_reviews;
 pub mod users;
