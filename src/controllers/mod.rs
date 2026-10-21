@@ -10,6 +10,7 @@ pub mod employees;
 pub mod helpdesk;
 pub mod interviews;
 pub mod jobs;
+pub mod learn;
 pub mod leave;
 pub mod offers;
 pub mod performance;

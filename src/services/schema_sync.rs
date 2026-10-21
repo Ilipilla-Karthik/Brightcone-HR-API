@@ -134,6 +134,9 @@ pub fn get_entity_registry() -> Vec<RegisteredEntity> {
         register_entity::<PerformanceGoals>(),
         register_entity::<PerformanceReviews>(),
         register_entity::<AuditLogs>(),
+        register_entity::<Courses>(),
+        register_entity::<CourseAssignments>(),
+        register_entity::<CourseReminders>(),
     ]
 }
 
@@ -271,7 +274,20 @@ async fn run_sync_inner(
         }
     }
 
-    // 3. Final verification of all registered tables
+    // 3. Ensure required composite constraints and domain indexes for REC-09
+    let domain_indexes = [
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_course_assignments_unique ON course_assignments (course_id, employee_id);",
+        "CREATE INDEX IF NOT EXISTS idx_course_assignments_emp ON course_assignments (employee_id);",
+        "CREATE INDEX IF NOT EXISTS idx_course_reminders_assign ON course_reminders (assignment_id);",
+        "CREATE INDEX IF NOT EXISTS idx_course_reminders_created ON course_reminders (created_at);",
+    ];
+    for sql in domain_indexes {
+        if let Err(e) = db.execute_unprepared(sql).await {
+            warn!("[SCHEMA-SYNC] Domain index notice: {}", e);
+        }
+    }
+
+    // 4. Final verification of all registered tables
     for entity in &registry {
         let verify_sql = format!("SELECT 1 FROM \"{}\" LIMIT 1;", entity.table_name);
         db.execute_unprepared(&verify_sql).await.map_err(|e| {

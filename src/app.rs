@@ -72,10 +72,12 @@ impl Hooks for App {
             .add_route(controllers::resignation::routes())
             .add_route(controllers::assets::routes())
             .add_route(controllers::documents::routes())
+            .add_route(controllers::learn::routes())
     }
 
     async fn connect_workers(ctx: &AppContext, queue: &Queue) -> Result<()> {
         queue.register(DownloadWorker::build(ctx)).await?;
+        queue.register(crate::workers::course_reminder::CourseReminderWorker::build(ctx)).await?;
         Ok(())
     }
 
