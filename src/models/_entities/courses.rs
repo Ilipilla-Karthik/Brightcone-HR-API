@@ -11,6 +11,8 @@ pub struct Model {
     pub duration: String,    // e.g. "1 h", "45 min"
     pub audience: String,    // "Everyone", "Managers", or department name
     pub due_date: Option<String>,
+    pub content_type: Option<String>, // "document", "video", or "link"
+    pub content_url: Option<String>,  // Absolute HTTPS resource URL
     pub created_at: DateTimeWithTimeZone,
     pub updated_at: DateTimeWithTimeZone,
 }

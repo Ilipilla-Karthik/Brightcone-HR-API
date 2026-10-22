@@ -119,6 +119,8 @@ try {
         duration = "45 mins"
         audience = "Everyone"
         due_date = "2026-11-30"
+        content_type = "document"
+        content_url = "https://company.example.com/materials/rec09_handbook.pdf"
     } | ConvertTo-Json
     $createResp = Invoke-RestMethod -Uri "$baseUrl/api/v1/learn/courses" -Method Post -Headers $adminHeaders -Body $validPayload
     $testCourseId = $createResp.id
@@ -130,6 +132,8 @@ try {
         duration = "75 mins"
         audience = "Everyone"
         due_date = "2026-12-31"
+        content_type = "document"
+        content_url = "https://company.example.com/materials/rec09_handbook.pdf"
     } | ConvertTo-Json
     $editResp = Invoke-RestMethod -Uri "$baseUrl/api/v1/learn/courses/$testCourseId" -Method Put -Headers $adminHeaders -Body $editPayload
     $dbCourse = Run-Psql "SELECT title || ' | ' || duration FROM courses WHERE id='$testCourseId';"
