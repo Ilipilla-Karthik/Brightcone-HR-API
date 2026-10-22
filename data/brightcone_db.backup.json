@@ -1,0 +1,711 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Recruitment Admin",
+      "email": "admin@brightcone.ai",
+      "password": "admin123",
+      "role": "Senior Talent Lead",
+      "created_at": "Oct 01, 2026"
+    },
+    {
+      "id": 2,
+      "name": "HR Specialist",
+      "email": "hr@brightcone.ai",
+      "password": "password123",
+      "role": "Recruiter",
+      "created_at": "Oct 02, 2026"
+    },
+    {
+      "id": 3,
+      "name": "Maya Lin",
+      "email": "maya@brightcone.ai",
+      "password": "secure123",
+      "role": "Technical Recruiter",
+      "created_at": "Today"
+    },
+    {
+      "id": 4,
+      "name": "Test Manager",
+      "email": "manager@brightcone.ai",
+      "password": "password123",
+      "role": "Hiring Manager",
+      "created_at": "Today"
+    },
+    {
+      "id": 5,
+      "name": "ROHITH",
+      "email": "r@brightcone.ai",
+      "password": "1234567890",
+      "role": "Technical Recruiter",
+      "created_at": "Today"
+    },
+    {
+      "id": 6,
+      "name": "dev",
+      "email": "dev@brightcone.ai",
+      "password": "1234567890",
+      "role": "Employee",
+      "created_at": "Today"
+    },
+    {
+      "id": 7,
+      "name": "Rahul Varma",
+      "email": "rahul.varma@brightcone.ai",
+      "password": "Welcome@123",
+      "role": "Employee",
+      "created_at": "Today"
+    },
+    {
+      "id": 8,
+      "name": "Ananya Rao",
+      "email": "ananya.rao@brightcone.ai",
+      "password": "Admin@123",
+      "role": "HR Admin",
+      "created_at": "Today"
+    }
+  ],
+  "jobs": [
+    {
+      "id": 8,
+      "title": "Lead AI Research Scientist",
+      "department": "AI Research",
+      "location": "Hyderabad (Hybrid)",
+      "skills": "PyTorch, CUDA, Transformers, Rust",
+      "status": "Active",
+      "posted_date": "Today"
+    },
+    {
+      "id": 7,
+      "title": "a",
+      "department": "Engineering",
+      "location": "Hyderabad",
+      "skills": "TypeScript, Rust, React, System Design",
+      "status": "Active",
+      "posted_date": "Today"
+    },
+    {
+      "id": 6,
+      "title": "JAVA",
+      "department": "Engineering",
+      "location": "Hyderabad",
+      "skills": "TypeScript, Rust, React, System Design",
+      "status": "Active",
+      "posted_date": "Today"
+    },
+    {
+      "id": 5,
+      "title": "PYTHON",
+      "department": "Engineering",
+      "location": "Hyderabad",
+      "skills": "TypeScript, Rust, React, System Design",
+      "status": "Active",
+      "posted_date": "Today"
+    },
+    {
+      "id": 1,
+      "title": "Senior Rust Backend Engineer",
+      "department": "Engineering",
+      "location": "San Francisco, CA (Hybrid)",
+      "skills": "Rust, Axum, Tokio, Distributed Systems",
+      "status": "Active",
+      "posted_date": "Oct 01, 2026"
+    },
+    {
+      "id": 2,
+      "title": "Full-Stack Product Developer",
+      "department": "Product",
+      "location": "New York, NY (Remote)",
+      "skills": "TypeScript, React, Rust, UI/UX",
+      "status": "Active",
+      "posted_date": "Oct 04, 2026"
+    },
+    {
+      "id": 3,
+      "title": "Technical Talent Acquisition Lead",
+      "department": "Human Resources",
+      "location": "Bangalore, India (On-site)",
+      "skills": "Tech Recruiting, ATS, Sourcing, Hiring Strategy",
+      "status": "Active",
+      "posted_date": "Oct 08, 2026"
+    },
+    {
+      "id": 4,
+      "title": "Cloud Infrastructure & DevOps Lead",
+      "department": "Infrastructure",
+      "location": "Remote",
+      "skills": "Kubernetes, CI/CD, AWS, Terraform",
+      "status": "Active",
+      "posted_date": "Oct 11, 2026"
+    }
+  ],
+  "candidates": [
+    {
+      "id": 7,
+      "name": "maniiiii",
+      "email": "asdf@gmail.com",
+      "job_id": 1,
+      "job_title": "Senior Rust Backend Engineer",
+      "skills": "dasdas",
+      "status": "Applied",
+      "applied_date": "Today"
+    },
+    {
+      "id": 6,
+      "name": "rohith",
+      "email": "sdf@gmail.com",
+      "job_id": 1,
+      "job_title": "Senior Rust Backend Engineer",
+      "skills": "sdf",
+      "status": "Interview",
+      "applied_date": "Today"
+    },
+    {
+      "id": 1,
+      "name": "Aarav Sharma",
+      "email": "aarav.sharma@example.com",
+      "job_id": 1,
+      "job_title": "Senior Rust Backend Engineer",
+      "skills": "Rust, Tokio, Axum, Concurrency, Linux",
+      "status": "Shortlisted",
+      "applied_date": "2026-10-10"
+    },
+    {
+      "id": 2,
+      "name": "Elena Rostova",
+      "email": "elena.rostova@example.com",
+      "job_id": 2,
+      "job_title": "Full-Stack Product Developer",
+      "skills": "TypeScript, React, Design Systems, REST",
+      "status": "Interview",
+      "applied_date": "2026-10-11"
+    },
+    {
+      "id": 3,
+      "name": "Marcus Vance",
+      "email": "m.vance@techpulse.io",
+      "job_id": 1,
+      "job_title": "Senior Rust Backend Engineer",
+      "skills": "C++, Rust, Concurrency, Low-latency",
+      "status": "Applied",
+      "applied_date": "2026-10-12"
+    },
+    {
+      "id": 4,
+      "name": "Priya Patel",
+      "email": "priya.patel@brightcone.hr",
+      "job_id": 3,
+      "job_title": "Technical Talent Acquisition Lead",
+      "skills": "Talent Strategy, ATS, Technical Hiring",
+      "status": "Selected",
+      "applied_date": "2026-10-08"
+    },
+    {
+      "id": 5,
+      "name": "David Kim",
+      "email": "david.kim@samplecorp.org",
+      "job_id": 4,
+      "job_title": "Cloud Infrastructure & DevOps Lead",
+      "skills": "AWS, Terraform, Docker, Python",
+      "status": "Rejected",
+      "applied_date": "2026-10-05"
+    }
+  ],
+  "interviews": [
+    {
+      "id": 4,
+      "candidate_id": 2,
+      "candidate_name": "Siddharth Rao",
+      "candidate_email": "elena.rostova@example.com",
+      "job_title": "Full-Stack Product Developer",
+      "interview_date": "2026-10-24",
+      "formatted_date": "2026-10-24",
+      "interviewer": "Sarah Jenkins",
+      "interview_type": "Technical 1",
+      "notes": "",
+      "status": "Scheduled",
+      "round": "Technical 1",
+      "mode": "Video call",
+      "time": "11:00 AM",
+      "venue_link": "https://meet.google.com/test-meet-link",
+      "rating": 4,
+      "result": "Pass",
+      "feedback": "Strong problem solving skills and clean code architecture.",
+      "archived": false
+    },
+    {
+      "id": 3,
+      "candidate_id": 6,
+      "candidate_name": "rohith",
+      "candidate_email": "sdf@gmail.com",
+      "job_title": "Senior Rust Backend Engineer",
+      "interview_date": "2026-10-23T17:39",
+      "formatted_date": "2026-10-23 17:39",
+      "interviewer": "sara",
+      "interview_type": "Technical Screening",
+      "notes": "",
+      "status": "Scheduled",
+      "round": null,
+      "mode": null,
+      "time": null,
+      "venue_link": null,
+      "rating": null,
+      "result": null,
+      "feedback": null,
+      "archived": null
+    },
+    {
+      "id": 1,
+      "candidate_id": 2,
+      "candidate_name": "Elena Rostova",
+      "candidate_email": "elena.rostova@example.com",
+      "job_title": "Full-Stack Product Developer",
+      "interview_date": "2026-10-16T14:00",
+      "formatted_date": "Oct 16, 2026 at 02:00 PM",
+      "interviewer": "Sarah Jenkins (Engineering Manager)",
+      "interview_type": "System Design",
+      "notes": "Discuss component modularity and client-server sync patterns.",
+      "status": "Scheduled",
+      "round": null,
+      "mode": null,
+      "time": null,
+      "venue_link": null,
+      "rating": null,
+      "result": null,
+      "feedback": null,
+      "archived": null
+    },
+    {
+      "id": 2,
+      "candidate_id": 1,
+      "candidate_name": "Aarav Sharma",
+      "candidate_email": "aarav.sharma@example.com",
+      "job_title": "Senior Rust Backend Engineer",
+      "interview_date": "2026-10-17T11:30",
+      "formatted_date": "Oct 17, 2026 at 11:30 AM",
+      "interviewer": "Vikram Malhotra (Staff Architect)",
+      "interview_type": "Technical Screening",
+      "notes": "Focus on memory management, async runtime, and error handling.",
+      "status": "Scheduled",
+      "round": null,
+      "mode": null,
+      "time": null,
+      "venue_link": null,
+      "rating": null,
+      "result": null,
+      "feedback": null,
+      "archived": null
+    }
+  ],
+  "employees": [
+    {
+      "id": "BC-1001",
+      "name": "Naresh Vemparala",
+      "role": "Founder & CEO",
+      "department": "Leadership",
+      "grade": "L9",
+      "location": "Hyderabad",
+      "manager": "no manager",
+      "status": "Active",
+      "email": "naresh@brightcone.ai"
+    },
+    {
+      "id": "BC-1004",
+      "name": "Ananya Rao",
+      "role": "People Ops Lead",
+      "department": "People Ops",
+      "grade": "L6",
+      "location": "Hyderabad",
+      "manager": "Naresh Vemparala",
+      "status": "Active",
+      "email": "ananya.rao@brightcone.ai"
+    },
+    {
+      "id": "BC-1012",
+      "name": "Karthik Reddy",
+      "role": "Principal AI Engineer",
+      "department": "AI Research",
+      "grade": "L8",
+      "location": "Hyderabad",
+      "manager": "Naresh Vemparala",
+      "status": "Active",
+      "email": "karthik.reddy@brightcone.ai"
+    },
+    {
+      "id": "BC-1019",
+      "name": "Priya Menon",
+      "role": "Engineering Manager",
+      "department": "Engineering",
+      "grade": "L7",
+      "location": "Bengaluru",
+      "manager": "Karthik Reddy",
+      "status": "Active",
+      "email": "priya.menon@brightcone.ai"
+    },
+    {
+      "id": "BC-1023",
+      "name": "Daniel Brooks",
+      "role": "Account Executive",
+      "department": "Sales",
+      "grade": "L6",
+      "location": "San Francisco",
+      "manager": "Naresh Vemparala",
+      "status": "Active",
+      "email": "daniel.brooks@brightcone.ai"
+    },
+    {
+      "id": "BC-1031",
+      "name": "Sneha Iyer",
+      "role": "Product Designer",
+      "department": "Design",
+      "grade": "L5",
+      "location": "Hyderabad",
+      "manager": "Priya Menon",
+      "status": "On leave",
+      "email": "sneha.iyer@brightcone.ai"
+    },
+    {
+      "id": "BC-1038",
+      "name": "Rahul Varma",
+      "role": "Backend Engineer",
+      "department": "Engineering",
+      "grade": "L4",
+      "location": "Hyderabad",
+      "manager": "Priya Menon",
+      "status": "Active",
+      "email": "rahul.varma@brightcone.ai"
+    },
+    {
+      "id": "BC-1042",
+      "name": "Meera Joshi",
+      "role": "Finance Manager",
+      "department": "Finance",
+      "grade": "L6",
+      "location": "Hyderabad",
+      "manager": "Naresh Vemparala",
+      "status": "Active",
+      "email": "meera.joshi@brightcone.ai"
+    }
+  ],
+  "goals": [
+    {
+      "id": 1,
+      "employee_id": "BC-1012",
+      "employee_name": "Karthik Reddy",
+      "title": "Deploy Distributed Vector LLM Serving Engine in Rust",
+      "category": "Innovation",
+      "target_date": "2026-11-15",
+      "progress": 85,
+      "status": "In Progress"
+    },
+    {
+      "id": 2,
+      "employee_id": "BC-1038",
+      "employee_name": "Rahul Varma",
+      "title": "Migrate Core Database Schema to PostgreSQL 18 & Optimize Connection Pool",
+      "category": "Engineering",
+      "target_date": "2026-10-31",
+      "progress": 90,
+      "status": "In Progress"
+    },
+    {
+      "id": 3,
+      "employee_id": "BC-1019",
+      "employee_name": "Priya Menon",
+      "title": "Establish Engineering Mentorship Framework for L4-L6 Engineers",
+      "category": "Leadership",
+      "target_date": "2026-12-15",
+      "progress": 60,
+      "status": "In Progress"
+    },
+    {
+      "id": 4,
+      "employee_id": "BC-1031",
+      "employee_name": "Sneha Iyer",
+      "title": "Design System Unification for Brightcone People Web & Mobile UI",
+      "category": "Product",
+      "target_date": "2026-11-30",
+      "progress": 75,
+      "status": "In Progress"
+    }
+  ],
+  "reviews": [
+    {
+      "id": 1,
+      "employee_id": "BC-1038",
+      "employee_name": "Rahul Varma",
+      "reviewer_name": "Priya Menon (Engineering Manager)",
+      "cycle": "Q3 2026 Mid-Year",
+      "rating": 4.8,
+      "feedback": "Rahul has demonstrated extraordinary ownership of backend Rust services, reducing latency by 45% and delivering candidate pipeline synchronization.",
+      "status": "Completed",
+      "updated_at": "Oct 10, 2026"
+    },
+    {
+      "id": 2,
+      "employee_id": "BC-1012",
+      "employee_name": "Karthik Reddy",
+      "reviewer_name": "Naresh Vemparala (Founder & CEO)",
+      "cycle": "Q3 2026 Mid-Year",
+      "rating": 4.9,
+      "feedback": "Pioneering technical visionary. Karthik led the architecture of the AI vector matching engine while upholding top-tier code maintainability.",
+      "status": "Completed",
+      "updated_at": "Oct 08, 2026"
+    }
+  ],
+  "profiles": [
+    {
+      "employee_id": "BC-1038",
+      "full_name": "Rahul Varma",
+      "work_email": "rahul.varma@brightcone.ai",
+      "role": "Backend Engineer",
+      "department": "Engineering",
+      "status": "Active",
+      "phone": "+91 98480 11038",
+      "dob": "Oct 7, 1996",
+      "blood_group": "B+",
+      "address": "Flat 402, Aparna Towers, Kondapur, Hyderabad 500084",
+      "emergency_contact": "Lakshmi Varma (Mother), +91 98490 22110",
+      "manager": "Priya Menon",
+      "grade": "L4",
+      "location": "Hyderabad",
+      "doj": "Feb 15, 2024",
+      "bank_name": "HDFC Bank",
+      "bank_account": "50100492817291",
+      "ifsc": "HDFC0001234",
+      "pan": "ABCDE1234F",
+      "uan": "100984920194",
+      "nominee_name": "Lakshmi Varma",
+      "nominee_relation": "Mother"
+    },
+    {
+      "employee_id": "BC-1004",
+      "full_name": "Ananya Rao",
+      "work_email": "ananya.rao@brightcone.ai",
+      "role": "People Ops Lead",
+      "department": "People Ops",
+      "status": "Active",
+      "phone": "+91 98765 43210",
+      "dob": "May 12, 1993",
+      "blood_group": "O+",
+      "address": "Plot 88, Jubilee Hills, Hyderabad 500033",
+      "emergency_contact": "Vikram Rao (Spouse), +91 98765 01234",
+      "manager": "Naresh Vemparala",
+      "grade": "L6",
+      "location": "Hyderabad",
+      "doj": "Jan 10, 2023",
+      "bank_name": "ICICI Bank",
+      "bank_account": "001201928374",
+      "ifsc": "ICIC0000012",
+      "pan": "XYZPA9876Q",
+      "uan": "100482910283",
+      "nominee_name": "Vikram Rao",
+      "nominee_relation": "Spouse"
+    }
+  ],
+  "manpower": [
+    {
+      "id": "MR-0001",
+      "designation": "asa",
+      "department": "ss",
+      "positions": 2,
+      "hiring_manager": "—",
+      "required_by": "Feb 20, 2020",
+      "status": "Overdue",
+      "employment_type": null,
+      "location": null,
+      "experience": null,
+      "budget_ctc": null,
+      "reason": null,
+      "replacing": null,
+      "job_description": null,
+      "created_at": null,
+      "updated_at": null,
+      "archived": null
+    },
+    {
+      "id": "MR-0002",
+      "designation": "Senior ML Engineer",
+      "department": "AI Research",
+      "positions": 3,
+      "hiring_manager": "Karthik Reddy",
+      "required_by": "Nov 30, 2026",
+      "status": "Approved",
+      "employment_type": null,
+      "location": null,
+      "experience": null,
+      "budget_ctc": null,
+      "reason": null,
+      "replacing": null,
+      "job_description": null,
+      "created_at": null,
+      "updated_at": null,
+      "archived": null
+    },
+    {
+      "id": "MR-0003",
+      "designation": "Solutions Architect",
+      "department": "Sales",
+      "positions": 1,
+      "hiring_manager": "Daniel Brooks",
+      "required_by": "Dec 15, 2026",
+      "status": "Pending",
+      "employment_type": null,
+      "location": null,
+      "experience": null,
+      "budget_ctc": null,
+      "reason": null,
+      "replacing": null,
+      "job_description": null,
+      "created_at": null,
+      "updated_at": null,
+      "archived": null
+    }
+  ],
+  "candidate_trackers": [
+    {
+      "id": "CAN-0004",
+      "full_name": "rohith",
+      "applied_for": "java",
+      "source": "Referral",
+      "total_experience": 4,
+      "expected_ctc": 2400000,
+      "stage": "Applied",
+      "email": "a@gmail.com",
+      "phone": "74125874185",
+      "archived": null
+    },
+    {
+      "id": "CAN-0001",
+      "full_name": "Siddharth Rao",
+      "applied_for": "QA Automation Engineer",
+      "source": "Referral",
+      "total_experience": 4,
+      "expected_ctc": 2400000,
+      "stage": "Interview",
+      "email": "siddharth.rao@example.com",
+      "phone": "+91 99887 66554",
+      "archived": null
+    },
+    {
+      "id": "CAN-0002",
+      "full_name": "wffs",
+      "applied_for": "Senior ML Engineer",
+      "source": "Referral",
+      "total_experience": 5,
+      "expected_ctc": 4500000,
+      "stage": "Applied",
+      "email": "wffs@example.com",
+      "phone": "+91 98112 33445",
+      "archived": null
+    },
+    {
+      "id": "CAN-0003",
+      "full_name": "Neha Bansal",
+      "applied_for": "Product Designer",
+      "source": "LinkedIn",
+      "total_experience": 6,
+      "expected_ctc": 3200000,
+      "stage": "Interview",
+      "email": "neha.bansal@example.com",
+      "phone": "+91 97654 32109",
+      "archived": null
+    }
+  ],
+  "referrals": [
+    {
+      "id": "RF-001",
+      "candidate_name": "wffs",
+      "role": "Senior ML Engineer",
+      "referred_by": "rahul.varma@brightcone.ai",
+      "bonus": 50000,
+      "status": "Applied",
+      "date": "Oct 15, 2026"
+    },
+    {
+      "id": "RF-002",
+      "candidate_name": "Siddharth Rao",
+      "role": "QA Automation Engineer",
+      "referred_by": "rahul.varma@brightcone.ai",
+      "bonus": 30000,
+      "status": "Interview",
+      "date": "Oct 12, 2026"
+    }
+  ],
+  "leaves": [
+    {
+      "id": "LV-101",
+      "employee_id": "BC-1038",
+      "leave_type": "Casual leave",
+      "from_date": "2026-10-09",
+      "to_date": "2026-10-09",
+      "days": 1,
+      "reason": "Personal family event",
+      "status": "Approved"
+    },
+    {
+      "id": "LV-102",
+      "employee_id": "BC-1038",
+      "leave_type": "Sick leave",
+      "from_date": "2026-09-14",
+      "to_date": "2026-09-15",
+      "days": 2,
+      "reason": "Viral fever recovery",
+      "status": "Approved"
+    }
+  ],
+  "attendance": [
+    {
+      "id": "ATT-101",
+      "employee_id": "BC-1038",
+      "date": "2026-10-15",
+      "punch_in": "09:15 AM",
+      "punch_out": "06:30 PM",
+      "work_hours": "8h 45m",
+      "status": "Present"
+    },
+    {
+      "id": "ATT-102",
+      "employee_id": "BC-1038",
+      "date": "2026-10-16",
+      "punch_in": "09:05 AM",
+      "punch_out": null,
+      "work_hours": "In progress",
+      "status": "Present"
+    }
+  ],
+  "offer_letters": [
+    {
+      "id": "OFF-002",
+      "candidate_id": "CAN-002",
+      "candidate_name": "Siddharth Rao",
+      "designation": "Senior Full-Stack Developer",
+      "annual_ctc": "?28,00,000",
+      "joining_date": "Dec 01, 2026",
+      "valid_till": "Nov 10, 2026",
+      "status": "Pending approval",
+      "archived": false,
+      "created_at": "Today"
+    },
+    {
+      "id": "OFF-001",
+      "candidate_id": "CAN-002",
+      "candidate_name": "Siddharth Rao",
+      "designation": "Full-Stack Developer",
+      "annual_ctc": "₹22,00,000",
+      "joining_date": "Nov 15, 2026",
+      "valid_till": "Oct 25, 2026",
+      "status": "Draft",
+      "archived": true,
+      "created_at": "15 Oct 2026, 11:00 am"
+    }
+  ],
+  "wakeup_count": 194,
+  "last_wakeup_time": "1792403841s epoch (Healthy Active)",
+  "next_user_id": 9,
+  "next_job_id": 9,
+  "next_candidate_id": 8,
+  "next_interview_id": 5,
+  "next_goal_id": 5,
+  "next_review_id": 3
+}
