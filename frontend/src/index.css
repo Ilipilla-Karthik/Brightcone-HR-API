@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+:root {
+  --brand-navy: #0B2641;
+  --brand: #0B6FDB;
+  --brand-2: #0BA6CC;
+  --brand-soft: #E3F0FF;
+  --brand-teal: #12C2A2;
+
+  --bg: #F4F6FB;
+  --surface: #FFFFFF;
+  --surface-2: #F8FAFD;
+  --line: #E3E8F2;
+  --text: #0E1730;
+  --muted: #5B6787;
+  --faint: #8D97B0;
+  --side-bg: #06101F;
+  --side-text: #C9D3EE;
+  --side-active: #FFFFFF;
+  --ok: #15A36B;
+  --ok-bg: #E3F6EE;
+  --warn: #C98200;
+  --warn-bg: #FFF4DB;
+  --bad: #D93D4A;
+  --bad-bg: #FDE8EA;
+  --info: var(--brand);
+  --info-bg: var(--brand-soft);
+  --shadow: 0 1px 2px rgba(14,23,48,.06), 0 8px 24px -12px rgba(14,23,48,.12);
+  --r-lg: 16px;
+  --r-md: 10px;
+  --r-sm: 7px;
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #070E22;
+  --surface: #0E1833;
+  --surface-2: #122042;
+  --line: #1D2B52;
+  --text: #E8EDFB;
+  --muted: #9AA6C6;
+  --faint: #6A779A;
+  --side-bg: #050B1C;
+  --side-text: #93A0C4;
+  --side-active: #FFFFFF;
+  --brand-soft: #16275A;
+  --ok-bg: #0E3326;
+  --warn-bg: #3A2C08;
+  --bad-bg: #3D141B;
+  --info-bg: #16275A;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px -14px rgba(0,0,0,.6);
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  height: 100%;
+  font-family: 'Figtree', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Sora', 'Figtree', system-ui, sans-serif;
+  letter-spacing: -0.01em;
+}

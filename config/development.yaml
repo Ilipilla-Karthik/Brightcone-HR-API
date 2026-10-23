@@ -1,0 +1,27 @@
+# Loco configuration for Brightcone HR API
+# Environment: development
+
+logger:
+  enable: true
+  pretty_backtrace: true
+  level: debug
+  format: compact
+
+server:
+  binding: 0.0.0.0
+  port: 5150
+  host: http://localhost
+
+database:
+  uri: <%= get_env(name="DATABASE_URL") %>
+  enable_logging: false
+  connect_timeout: 1000
+  idle_timeout: 500
+  min_connections: 1
+  max_connections: 5
+  auto_migrate: false
+  dangerously_truncate: false
+  dangerously_recreate: false
+
+workers:
+  mode: ForegroundBlocking

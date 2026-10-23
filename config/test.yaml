@@ -1,0 +1,24 @@
+# Loco configuration for Brightcone HR API
+# Environment: test
+
+logger:
+  enable: false
+  pretty_backtrace: false
+  level: error
+  format: compact
+
+server:
+  binding: 0.0.0.0
+  port: 5151
+  host: http://localhost
+
+database:
+  uri: <%= get_env(name="TEST_DATABASE_URL", default="postgres://postgres:postgres@localhost:5432/brightcone_schema_sync_test") %>
+  enable_logging: false
+  connect_timeout: 1000
+  idle_timeout: 500
+  min_connections: 1
+  max_connections: 5
+  auto_migrate: false
+  dangerously_truncate: false
+  dangerously_recreate: false
