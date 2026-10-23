@@ -17,4 +17,5 @@ pub mod performance_reviews;
 pub mod prelude;
 pub mod referrals;
 pub mod resignation_requests;
+pub mod signature_templates;
 pub mod users;

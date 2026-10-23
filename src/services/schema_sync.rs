@@ -134,6 +134,7 @@ pub fn get_entity_registry() -> Vec<RegisteredEntity> {
         register_entity::<PerformanceGoals>(),
         register_entity::<PerformanceReviews>(),
         register_entity::<AuditLogs>(),
+        register_entity::<SignatureTemplates>(),
     ]
 }
 

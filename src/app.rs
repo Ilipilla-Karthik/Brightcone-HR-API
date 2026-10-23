@@ -72,6 +72,8 @@ impl Hooks for App {
             .add_route(controllers::resignation::routes())
             .add_route(controllers::assets::routes())
             .add_route(controllers::documents::routes())
+            .add_route(controllers::signature_templates::routes())
+            .add_route(controllers::signature_templates::v1_routes())
     }
 
     async fn connect_workers(ctx: &AppContext, queue: &Queue) -> Result<()> {

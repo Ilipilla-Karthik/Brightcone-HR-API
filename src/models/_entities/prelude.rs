@@ -16,4 +16,5 @@ pub use super::performance_goals::Entity as PerformanceGoals;
 pub use super::performance_reviews::Entity as PerformanceReviews;
 pub use super::referrals::Entity as Referrals;
 pub use super::resignation_requests::Entity as ResignationRequests;
+pub use super::signature_templates::Entity as SignatureTemplates;
 pub use super::users::Entity as Users;

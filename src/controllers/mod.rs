@@ -15,3 +15,4 @@ pub mod offers;
 pub mod performance;
 pub mod referrals;
 pub mod resignation;
+pub mod signature_templates;
