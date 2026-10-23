@@ -110,3 +110,7 @@ auth:
     secret: <%= get_env(name="JWT_SECRET") %>
     # Token expiration time in seconds
     expiration: 604800 # 7 days
+
+# Business Settings
+settings:
+  business_timezone: <%= get_env(name="BUSINESS_TIMEZONE", default="+05:30") %>

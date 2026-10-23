@@ -86,3 +86,7 @@ auth:
     secret: VgVgEQG8nmK8yCHRlHcj
     # Token expiration time in seconds
     expiration: 604800 # 7 days
+
+# Business Settings
+settings:
+  business_timezone: <%= get_env(name="BUSINESS_TIMEZONE", default="+05:30") %>
