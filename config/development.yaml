@@ -52,7 +52,7 @@ mailer:
 
 # Database Configuration
 database:
-  uri: <%= get_env(name="DATABASE_URL", default="postgres://postgres:postgres@127.0.0.1:5435/brightcone_hr_portal") %>
+  uri: <%= get_env(name="DATABASE_URL", default="postgres://postgres:manager@127.0.0.1:5432/brightcone_hr_portal") %>
   enable_logging: <%= get_env(name="DB_LOGGING", default="false") %>
   connect_timeout: <%= get_env(name="DB_CONNECT_TIMEOUT", default="5000") %>
   idle_timeout: <%= get_env(name="DB_IDLE_TIMEOUT", default="5000") %>
