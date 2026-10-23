@@ -75,6 +75,12 @@ impl Hooks for App {
             .add_route(controllers::signature_templates::routes())
             .add_route(controllers::signature_templates::v1_routes())
             .add_route(controllers::learn::routes())
+            .add_route(controllers::shifts::routes())
+            .add_route(controllers::shifts::legacy_routes())
+            .add_route(controllers::holidays::routes())
+            .add_route(controllers::holidays::legacy_routes())
+            .add_route(controllers::roster::routes())
+            .add_route(controllers::roster::legacy_routes())
     }
 
     async fn connect_workers(ctx: &AppContext, queue: &Queue) -> Result<()> {

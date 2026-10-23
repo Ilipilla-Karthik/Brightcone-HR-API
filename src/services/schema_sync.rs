@@ -140,6 +140,9 @@ pub fn get_entity_registry() -> Vec<RegisteredEntity> {
         register_entity::<CourseReminders>(),
         register_entity::<ReviewCycles>(),
         register_entity::<CycleReviews>(),
+        register_entity::<Shifts>(),
+        register_entity::<Holidays>(),
+        register_entity::<RosterAssignments>(),
     ]
 }
 
