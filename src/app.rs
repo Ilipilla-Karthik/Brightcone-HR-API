@@ -66,6 +66,7 @@ impl Hooks for App {
             .add_route(controllers::offers::routes())
             .add_route(controllers::referrals::routes())
             .add_route(controllers::performance::routes())
+            .add_route(controllers::review_cycles::routes())
             .add_route(controllers::leave::routes())
             .add_route(controllers::attendance::routes())
             .add_route(controllers::helpdesk::routes())
