@@ -134,15 +134,12 @@ pub fn get_entity_registry() -> Vec<RegisteredEntity> {
         register_entity::<PerformanceGoals>(),
         register_entity::<PerformanceReviews>(),
         register_entity::<AuditLogs>(),
-<<<<<<< HEAD
         register_entity::<SignatureTemplates>(),
-=======
         register_entity::<Courses>(),
         register_entity::<CourseAssignments>(),
         register_entity::<CourseReminders>(),
         register_entity::<ReviewCycles>(),
         register_entity::<CycleReviews>(),
->>>>>>> origin/feat/rec-09-learning-api
     ]
 }
 
