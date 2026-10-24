@@ -159,10 +159,56 @@ pub async fn toggle_pin(
 
 pub async fn list_celebrations() -> Result<Response> {
     format::json(json!([
-        { "name": "Karthik Reddy", "type": "Work Anniversary", "detail": "3 years at Brightcone", "date": "Oct 24" },
-        { "name": "Emily Carter", "type": "Birthday", "detail": "October 29", "date": "Oct 29" },
-        { "name": "Rahul Varma", "type": "Work Anniversary", "detail": "2 years at Brightcone", "date": "Nov 02" },
-        { "name": "Ananya Rao", "type": "Birthday", "detail": "November 05", "date": "Nov 05" }
+        {
+            "id": "cel_1",
+            "empId": "BC-1012",
+            "name": "Karthik Reddy",
+            "occasion": "Work anniversary",
+            "date": "2026-10-24",
+            "daysAway": 0,
+            "milestone": "3rd work anniversary",
+            "dept": "AI Research"
+        },
+        {
+            "id": "cel_2",
+            "empId": "BC-1004",
+            "name": "Ananya Rao",
+            "occasion": "Birthday",
+            "date": "2026-10-27",
+            "daysAway": 3,
+            "milestone": "Turning 28",
+            "dept": "People Ops"
+        },
+        {
+            "id": "cel_3",
+            "empId": "BC-1038",
+            "name": "Rahul Varma",
+            "occasion": "Work anniversary",
+            "date": "2026-10-30",
+            "daysAway": 6,
+            "milestone": "2nd work anniversary",
+            "dept": "Engineering"
+        },
+        {
+            "id": "cel_4",
+            "empId": "BC-1019",
+            "name": "Priya Menon",
+            "occasion": "Birthday",
+            "date": "2026-11-04",
+            "daysAway": 11,
+            "milestone": "Turning 32",
+            "dept": "Engineering"
+        },
+        {
+            "id": "cel_5",
+            "empId": "BC-1031",
+            "name": "Sneha Iyer",
+            "occasion": "Work anniversary",
+            "date": "2026-11-12",
+            "daysAway": 19,
+            "milestone": "1st work anniversary",
+            "dept": "Design"
+        }
     ]))
 }
 
@@ -182,8 +228,76 @@ pub async fn list_groups() -> Result<Response> {
 
 pub async fn list_events() -> Result<Response> {
     format::json(json!([
-        { "id": "ev_diwali", "title": "Brightcone Diwali Town Hall", "date": "2026-10-31", "place": "Hyderabad Hub & Zoom", "description": "Annual celebration, milestones and awards" },
-        { "id": "ev_hackathon", "title": "Agentic AI Hackathon 2026", "date": "2026-11-14", "place": "Remote & Bengaluru Office", "description": "48-hour build sprint on agent automation" }
+        {
+            "id": "EV-101",
+            "name": "Brightcone Diwali Celebration",
+            "etype": "Festival",
+            "date": "2026-10-31",
+            "time": "16:00",
+            "venue": "Hyderabad HQ, 4th Floor Cafeteria",
+            "organiser": "Ananya Rao",
+            "budget": 75000,
+            "att": 140,
+            "status": "Confirmed",
+            "notes": "Traditional attire, rangoli competition, sweets and high tea."
+        },
+        {
+            "id": "EV-102",
+            "name": "Agentic AI Hackathon 2026",
+            "etype": "Celebration",
+            "date": "2026-11-14",
+            "time": "09:00",
+            "venue": "Bengaluru Innovation Lab and Zoom",
+            "organiser": "Karthik Reddy",
+            "budget": 120000,
+            "att": 85,
+            "status": "Planned",
+            "notes": "48-hour build sprint on autonomous agents and workflows."
+        },
+        {
+            "id": "EV-103",
+            "name": "Annual Leadership Offsite",
+            "etype": "Offsite",
+            "date": "2026-11-28",
+            "time": "08:30",
+            "venue": "Goa Marriott Resort",
+            "organiser": "Naresh Vemparala",
+            "budget": 350000,
+            "att": 24,
+            "status": "Planned",
+            "notes": "FY27 product roadmap planning and executive team bonding."
+        }
+    ]))
+}
+
+pub async fn list_townhalls() -> Result<Response> {
+    format::json(json!([
+        {
+            "id": "TH-26-01",
+            "title": "Q3 All-Hands and AI Product Roadmap",
+            "date": "2026-10-30",
+            "time": "15:00",
+            "mode": "Hybrid",
+            "host": "Naresh Vemparala",
+            "agenda": "Q3 performance review, customer ARR milestones, and preview of Sign & Connect apps.",
+            "att": 142,
+            "status": "Scheduled",
+            "minutes": "Meeting deck will be uploaded to Learn portal within 24 hours.",
+            "actions": "Product demo recordings to be distributed across engineering teams."
+        },
+        {
+            "id": "TH-26-02",
+            "title": "People and Culture Open Forum",
+            "date": "2026-10-15",
+            "time": "16:30",
+            "mode": "Online",
+            "host": "Ananya Rao",
+            "agenda": "Annual benefits renewal, wellness stipend review, and Q&A session.",
+            "att": 118,
+            "status": "Completed",
+            "minutes": "HR confirmed increase of wellness stipend by 15% starting Nov 1.",
+            "actions": "Benefits enrollment guide circulated to all employees."
+        }
     ]))
 }
 
@@ -229,6 +343,7 @@ pub fn routes() -> Routes {
         .add("/directory", get(list_directory))
         .add("/groups", get(list_groups))
         .add("/events", get(list_events))
+        .add("/townhalls", get(list_townhalls))
         .add("/feedback", post(create_feedback))
         .add("/feedback", get(list_feedback))
 }
