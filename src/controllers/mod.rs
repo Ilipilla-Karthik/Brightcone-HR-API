@@ -22,3 +22,5 @@ pub mod review_cycles;
 pub mod roster;
 pub mod shifts;
 pub mod signature_templates;
+pub mod sign_envelopes;
+pub mod connect;

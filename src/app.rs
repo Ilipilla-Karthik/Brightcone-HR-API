@@ -75,6 +75,8 @@ impl Hooks for App {
             .add_route(controllers::documents::routes())
             .add_route(controllers::signature_templates::routes())
             .add_route(controllers::signature_templates::v1_routes())
+            .add_route(controllers::sign_envelopes::routes())
+            .add_route(controllers::connect::routes())
             .add_route(controllers::learn::routes())
             .add_route(controllers::shifts::routes())
             .add_route(controllers::shifts::legacy_routes())
