@@ -84,6 +84,7 @@ impl Hooks for App {
             .add_route(controllers::holidays::legacy_routes())
             .add_route(controllers::roster::routes())
             .add_route(controllers::roster::legacy_routes())
+            .add_route(controllers::payroll::routes())
     }
 
     async fn connect_workers(ctx: &AppContext, queue: &Queue) -> Result<()> {
