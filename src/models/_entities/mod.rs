@@ -34,4 +34,7 @@ pub mod connect_feedback;
 pub mod internships;
 pub mod hr_policies;
 pub mod handbooks;
+pub mod policy_acknowledgements;
+pub mod vendors;
+pub mod recognitions;
 pub mod users;

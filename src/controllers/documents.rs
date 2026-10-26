@@ -1,7 +1,16 @@
 use crate::models::_entities::employee_documents::{self, ActiveModel, Entity, Model};
 use loco_rs::prelude::*;
 use sea_orm::{ActiveModelTrait, EntityTrait, QueryOrder, Set};
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct CreateDocParams {
+    pub employee_code: Option<String>,
+    pub title: String,
+    pub document_type: String,
+    pub file_size: Option<String>,
+}
 
 #[debug_handler]
 pub async fn my_documents(State(ctx): State<AppContext>) -> Result<Response> {
@@ -71,9 +80,32 @@ pub async fn my_documents(State(ctx): State<AppContext>) -> Result<Response> {
     format::json(list)
 }
 
+#[debug_handler]
+pub async fn create_document(
+    State(ctx): State<AppContext>,
+    Json(params): Json<CreateDocParams>,
+) -> Result<Response> {
+    let active = ActiveModel {
+        doc_id: Set(Uuid::new_v4()),
+        employee_code: Set(params.employee_code.unwrap_or_else(|| "BC-1038".to_string())),
+        title: Set(params.title.clone()),
+        document_type: Set(params.document_type),
+        file_size: Set(params.file_size.unwrap_or_else(|| "350 KB".to_string())),
+        issued_date: Set("2026-10-26".to_string()),
+        download_url: Set(Some(format!(
+            "/api/v1/documents/sample/{}.pdf",
+            params.title.replace(' ', "_")
+        ))),
+        ..Default::default()
+    };
+    let record = active.insert(&ctx.db).await?;
+    format::json(record)
+}
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("/api/v1/documents")
         .add("/my", get(my_documents))
-        .add("/", get(my_documents))
+        .add("", get(my_documents))
+        .add("", post(create_document))
 }

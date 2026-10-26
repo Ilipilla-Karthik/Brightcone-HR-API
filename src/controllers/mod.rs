@@ -29,3 +29,6 @@ pub mod hr_policies;
 pub mod handbooks;
 pub mod payroll;
 pub mod expenses;
+pub mod policy_acknowledgements;
+pub mod vendors;
+pub mod recognitions;

@@ -33,4 +33,7 @@ pub use super::connect_feedback::Entity as ConnectFeedback;
 pub use super::internships::Entity as Internships;
 pub use super::hr_policies::Entity as HrPolicies;
 pub use super::handbooks::Entity as Handbooks;
+pub use super::policy_acknowledgements::Entity as PolicyAcknowledgements;
+pub use super::vendors::Entity as Vendors;
+pub use super::recognitions::Entity as Recognitions;
 pub use super::users::Entity as Users;

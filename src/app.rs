@@ -90,6 +90,9 @@ impl Hooks for App {
             .add_route(controllers::payroll::routes())
             .add_route(controllers::expenses::routes())
             .add_route(controllers::expenses::office_routes())
+            .add_route(controllers::policy_acknowledgements::routes())
+            .add_route(controllers::vendors::routes())
+            .add_route(controllers::recognitions::routes())
     }
 
     async fn connect_workers(ctx: &AppContext, queue: &Queue) -> Result<()> {
