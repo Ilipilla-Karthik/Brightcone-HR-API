@@ -124,6 +124,7 @@ pub fn get_entity_registry() -> Vec<RegisteredEntity> {
         register_entity::<ApplicationHistories>(),
         register_entity::<Interviews>(),
         register_entity::<Offers>(),
+        register_entity::<Internships>(),
         register_entity::<Referrals>(),
         register_entity::<AttendanceRecords>(),
         register_entity::<LeaveRequests>(),

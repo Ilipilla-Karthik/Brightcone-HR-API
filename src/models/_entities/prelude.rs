@@ -30,4 +30,5 @@ pub use super::sign_audit_events::Entity as SignAuditEvents;
 pub use super::connect_posts::Entity as ConnectPosts;
 pub use super::connect_comments::Entity as ConnectComments;
 pub use super::connect_feedback::Entity as ConnectFeedback;
+pub use super::internships::Entity as Internships;
 pub use super::users::Entity as Users;

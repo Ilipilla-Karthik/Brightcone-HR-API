@@ -24,4 +24,6 @@ pub mod shifts;
 pub mod signature_templates;
 pub mod sign_envelopes;
 pub mod connect;
+pub mod internships;
 pub mod payroll;
+pub mod expenses;

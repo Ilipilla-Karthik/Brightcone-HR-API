@@ -63,6 +63,7 @@ impl Hooks for App {
             .add_route(controllers::candidates::routes())
             .add_route(controllers::applications::routes())
             .add_route(controllers::interviews::routes())
+            .add_route(controllers::internships::routes())
             .add_route(controllers::offers::routes())
             .add_route(controllers::referrals::routes())
             .add_route(controllers::performance::routes())
@@ -85,6 +86,8 @@ impl Hooks for App {
             .add_route(controllers::roster::routes())
             .add_route(controllers::roster::legacy_routes())
             .add_route(controllers::payroll::routes())
+            .add_route(controllers::expenses::routes())
+            .add_route(controllers::expenses::office_routes())
     }
 
     async fn connect_workers(ctx: &AppContext, queue: &Queue) -> Result<()> {

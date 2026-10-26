@@ -31,4 +31,5 @@ pub mod sign_audit_events;
 pub mod connect_posts;
 pub mod connect_comments;
 pub mod connect_feedback;
+pub mod internships;
 pub mod users;

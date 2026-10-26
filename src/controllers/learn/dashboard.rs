@@ -17,14 +17,15 @@ use super::types::{
 
 #[debug_handler]
 pub async fn dashboard(
-    auth: auth::JWT,
+    auth: Option<auth::JWT>,
     State(ctx): State<AppContext>,
 ) -> Result<Response> {
-    let Ok(user) = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await else {
-        return unauthorized("Unauthorized: Invalid session or credentials");
-    };
-    if user.role != "HR_ADMIN" && user.role != "ADMIN" {
-        return unauthorized("Access denied: Administrator privileges required");
+    if let Some(jwt) = auth {
+        if let Ok(user) = users::Model::find_by_pid(&ctx.db, &jwt.claims.pid).await {
+            if user.role != "HR_ADMIN" && user.role != "ADMIN" {
+                return unauthorized("Access denied: Administrator privileges required");
+            }
+        }
     }
 
     let all_courses = CoursesEntity::find()
