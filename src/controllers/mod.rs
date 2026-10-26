@@ -25,5 +25,7 @@ pub mod signature_templates;
 pub mod sign_envelopes;
 pub mod connect;
 pub mod internships;
+pub mod hr_policies;
+pub mod handbooks;
 pub mod payroll;
 pub mod expenses;

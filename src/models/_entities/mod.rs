@@ -32,4 +32,6 @@ pub mod connect_posts;
 pub mod connect_comments;
 pub mod connect_feedback;
 pub mod internships;
+pub mod hr_policies;
+pub mod handbooks;
 pub mod users;

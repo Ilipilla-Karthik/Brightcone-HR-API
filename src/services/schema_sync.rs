@@ -138,6 +138,8 @@ pub fn get_entity_registry() -> Vec<RegisteredEntity> {
         register_entity::<SignatureTemplates>(),
         register_entity::<SignEnvelopes>(),
         register_entity::<SignAuditEvents>(),
+        register_entity::<HrPolicies>(),
+        register_entity::<Handbooks>(),
         register_entity::<ConnectPosts>(),
         register_entity::<ConnectComments>(),
         register_entity::<ConnectFeedback>(),
