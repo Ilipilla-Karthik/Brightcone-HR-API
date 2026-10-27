@@ -107,22 +107,45 @@ pub async fn create(
     State(ctx): State<AppContext>,
     Json(params): Json<EmployeeParams>,
 ) -> Result<Response> {
-    // Check duplicate employee code
-    let exists = Entity::find()
-        .filter(employees::Column::EmployeeCode.eq(&params.employee_code))
-        .one(&ctx.db)
-        .await?;
-
-    if exists.is_some() {
-        return bad_request(format!(
-            "Employee with ID {} already exists",
+    let emp_code = if params.employee_code.trim().is_empty() {
+        let all = Entity::find().all(&ctx.db).await?;
+        let mut max_id = 1000;
+        for emp in &all {
+            if let Some(num_str) = emp.employee_code.strip_prefix("BC-") {
+                if let Ok(num) = num_str.parse::<i32>() {
+                    if num < 9000 && num > max_id {
+                        max_id = num;
+                    }
+                }
+            }
+        }
+        format!("BC-{}", max_id + 1)
+    } else {
+        let exists = Entity::find()
+            .filter(employees::Column::EmployeeCode.eq(&params.employee_code))
+            .one(&ctx.db)
+            .await?;
+        if exists.is_some() {
+            let all = Entity::find().all(&ctx.db).await?;
+            let mut max_id = 1000;
+            for emp in &all {
+                if let Some(num_str) = emp.employee_code.strip_prefix("BC-") {
+                    if let Ok(num) = num_str.parse::<i32>() {
+                        if num < 9000 && num > max_id {
+                            max_id = num;
+                        }
+                    }
+                }
+            }
+            format!("BC-{}", max_id + 1)
+        } else {
             params.employee_code
-        ));
-    }
+        }
+    };
 
     let active_model = ActiveModel {
         emp_id: Set(Uuid::new_v4()),
-        employee_code: Set(params.employee_code),
+        employee_code: Set(emp_code),
         full_name: Set(params.full_name),
         job_title: Set(params.job_title),
         department: Set(params.department),
@@ -308,10 +331,11 @@ pub fn routes() -> Routes {
         .prefix("/api/v1/employees")
         .add("/me/profile", get(me_profile))
         .add("/me", get(me_profile))
-        .add("/", get(list))
-        .add("/", post(create))
+        .add("", get(list))
+        .add("", post(create))
         .add("/import", post(import_csv))
         .add("/export", get(export_csv))
         .add("/{id}", get(get_one))
         .add("/{id}", patch(update))
+        .add("/{id}", put(update))
 }

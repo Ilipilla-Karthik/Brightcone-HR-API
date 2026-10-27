@@ -95,6 +95,6 @@ pub fn routes() -> Routes {
     Routes::new()
         .prefix("/api/v1/assets")
         .add("/my", get(my_assets))
-        .add("/", get(my_assets))
-        .add("/", post(create_asset))
+        .add("", get(my_assets))
+        .add("", post(create_asset))
 }

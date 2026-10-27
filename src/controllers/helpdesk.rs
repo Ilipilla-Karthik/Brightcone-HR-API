@@ -78,7 +78,8 @@ pub fn routes() -> Routes {
     Routes::new()
         .prefix("/api/v1/helpdesk")
         .add("/my", get(my_tickets))
+        .add("", get(my_tickets))
+        .add("", post(create_ticket))
         .add("/tickets", post(create_ticket))
-        .add("/", get(my_tickets))
         .add("/{id}/status", patch(update_status))
 }
