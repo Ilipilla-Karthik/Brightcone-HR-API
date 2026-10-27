@@ -160,9 +160,10 @@ pub async fn remove(State(ctx): State<AppContext>, Path(id): Path<String>) -> Re
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("/api/v1/candidates")
-        .add("/", get(list))
-        .add("/", post(create))
+        .add("", get(list))
+        .add("", post(create))
         .add("/{id}", get(get_one))
         .add("/{id}", patch(update))
+        .add("/{id}", put(update))
         .add("/{id}", delete(remove))
 }

@@ -148,6 +148,7 @@ pub fn get_entity_registry() -> Vec<RegisteredEntity> {
         register_entity::<ConnectPosts>(),
         register_entity::<ConnectComments>(),
         register_entity::<ConnectFeedback>(),
+        register_entity::<ConnectTownhalls>(),
         register_entity::<Courses>(),
         register_entity::<CourseAssignments>(),
         register_entity::<CourseReminders>(),

@@ -40,3 +40,4 @@ pub mod recognitions;
 pub mod company_events;
 pub mod celebration_wishes;
 pub mod users;
+pub mod connect_townhalls;

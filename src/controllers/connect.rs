@@ -171,37 +171,6 @@ pub async fn list_groups() -> Result<Response> {
     ]))
 }
 
-pub async fn list_townhalls() -> Result<Response> {
-    format::json(json!([
-        {
-            "id": "TH-26-01",
-            "title": "Q3 All-Hands and AI Product Roadmap",
-            "date": "2026-10-30",
-            "time": "15:00",
-            "mode": "Hybrid",
-            "host": "Naresh Vemparala",
-            "agenda": "Q3 performance review, customer ARR milestones, and preview of Sign & Connect apps.",
-            "att": 142,
-            "status": "Scheduled",
-            "minutes": "Meeting deck will be uploaded to Learn portal within 24 hours.",
-            "actions": "Product demo recordings to be distributed across engineering teams."
-        },
-        {
-            "id": "TH-26-02",
-            "title": "People and Culture Open Forum",
-            "date": "2026-10-15",
-            "time": "16:30",
-            "mode": "Online",
-            "host": "Ananya Rao",
-            "agenda": "Annual benefits renewal, wellness stipend review, and Q&A session.",
-            "att": 118,
-            "status": "Completed",
-            "minutes": "HR confirmed increase of wellness stipend by 15% starting Nov 1.",
-            "actions": "Benefits enrollment guide circulated to all employees."
-        }
-    ]))
-}
-
 pub async fn create_feedback(
     State(ctx): State<AppContext>,
     Json(payload): Json<CreateFeedbackPayload>,
@@ -249,7 +218,11 @@ pub fn routes() -> Routes {
         .add("/events/{id}", patch(crate::controllers::events::update_event))
         .add("/events/{id}", put(crate::controllers::events::update_event))
         .add("/events/{id}", delete(crate::controllers::events::delete_event))
-        .add("/townhalls", get(list_townhalls))
+        .add("/townhalls", get(crate::controllers::townhalls::list_townhalls))
+        .add("/townhalls", post(crate::controllers::townhalls::create_townhall))
+        .add("/townhalls/{id}", patch(crate::controllers::townhalls::update_townhall))
+        .add("/townhalls/{id}", put(crate::controllers::townhalls::update_townhall))
+        .add("/townhalls/{id}", delete(crate::controllers::townhalls::delete_townhall))
         .add("/feedback", post(create_feedback))
         .add("/feedback", get(list_feedback))
 }

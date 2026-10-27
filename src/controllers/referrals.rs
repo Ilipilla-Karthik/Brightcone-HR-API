@@ -36,7 +36,7 @@ pub async fn create(
     let referrer = params
         .referred_by
         .or(params.referrer_name)
-        .unwrap_or_else(|| "Rahul Varma".to_string());
+        .unwrap_or_else(|| "Ananya Rao".to_string());
 
     let title = params
         .job_title
@@ -62,6 +62,6 @@ pub async fn create(
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("/api/v1/referrals")
-        .add("/", get(list))
-        .add("/", post(create))
+        .add("", get(list))
+        .add("", post(create))
 }

@@ -34,3 +34,4 @@ pub mod vendors;
 pub mod recognitions;
 pub mod events;
 pub mod celebrations;
+pub mod townhalls;

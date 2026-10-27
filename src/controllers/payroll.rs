@@ -216,21 +216,43 @@ pub async fn get_variances() -> Result<Response> {
 }
 
 #[debug_handler]
-pub async fn get_register() -> Result<Response> {
-    let s = get_store().lock().unwrap();
-    let items: Vec<RegisterItem> = s.employees.iter().map(|e| {
-        let b = compute_salary_in_paise(e.gross, true, "new");
-        RegisterItem {
-            emp_id: e.id.clone(),
-            name: e.name.clone(),
-            dept: e.dept.clone(),
-            gross: b.gross_monthly_rupees,
-            pf: b.employee_pf_rupees,
-            pt: b.professional_tax_rupees,
-            tds: b.estimated_tds_rupees,
-            net: b.net_take_home_rupees,
-        }
-    }).collect();
+pub async fn get_register(State(ctx): State<AppContext>) -> Result<Response> {
+    let db_emps = crate::models::_entities::employees::Entity::find()
+        .all(&ctx.db)
+        .await
+        .unwrap_or_default();
+
+    let items: Vec<RegisterItem> = if !db_emps.is_empty() {
+        db_emps.into_iter().map(|e| {
+            let monthly_gross: f64 = e.ctc.unwrap_or(1200000.0) / 12.0;
+            let b = compute_salary_in_paise(monthly_gross, true, "new");
+            RegisterItem {
+                emp_id: e.employee_code,
+                name: e.full_name,
+                dept: e.department,
+                gross: b.gross_monthly_rupees,
+                pf: b.employee_pf_rupees,
+                pt: b.professional_tax_rupees,
+                tds: b.estimated_tds_rupees,
+                net: b.net_take_home_rupees,
+            }
+        }).collect()
+    } else {
+        let s = get_store().lock().unwrap();
+        s.employees.iter().map(|e| {
+            let b = compute_salary_in_paise(e.gross, true, "new");
+            RegisterItem {
+                emp_id: e.id.clone(),
+                name: e.name.clone(),
+                dept: e.dept.clone(),
+                gross: b.gross_monthly_rupees,
+                pf: b.employee_pf_rupees,
+                pt: b.professional_tax_rupees,
+                tds: b.estimated_tds_rupees,
+                net: b.net_take_home_rupees,
+            }
+        }).collect()
+    };
     format::json(items)
 }
 
@@ -267,6 +289,18 @@ pub async fn publish_and_lock(Path(_id): Path<String>) -> Result<Response> {
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("/api/payroll")
+        .add("/runs", get(list_runs))
+        .add("/runs/active", get(get_active_run))
+        .add("/attendance-sync", get(get_attendance_sync))
+        .add("/variances", get(get_variances))
+        .add("/register", get(get_register))
+        .add("/runs/{id}/advance-step", post(advance_step))
+        .add("/runs/{id}/publish-and-lock", post(publish_and_lock))
+}
+
+pub fn v1_routes() -> Routes {
+    Routes::new()
+        .prefix("/api/v1/payroll")
         .add("/runs", get(list_runs))
         .add("/runs/active", get(get_active_run))
         .add("/attendance-sync", get(get_attendance_sync))

@@ -88,6 +88,7 @@ impl Hooks for App {
             .add_route(controllers::roster::routes())
             .add_route(controllers::roster::legacy_routes())
             .add_route(controllers::payroll::routes())
+            .add_route(controllers::payroll::v1_routes())
             .add_route(controllers::expenses::routes())
             .add_route(controllers::expenses::office_routes())
             .add_route(controllers::policy_acknowledgements::routes())
@@ -95,6 +96,7 @@ impl Hooks for App {
             .add_route(controllers::recognitions::routes())
             .add_route(controllers::events::legacy_routes())
             .add_route(controllers::celebrations::legacy_routes())
+            .add_route(controllers::townhalls::legacy_routes())
     }
 
     async fn connect_workers(ctx: &AppContext, queue: &Queue) -> Result<()> {

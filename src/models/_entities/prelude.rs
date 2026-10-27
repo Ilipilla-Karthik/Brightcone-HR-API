@@ -39,3 +39,4 @@ pub use super::recognitions::Entity as Recognitions;
 pub use super::company_events::Entity as CompanyEvents;
 pub use super::celebration_wishes::Entity as CelebrationWishes;
 pub use super::users::Entity as Users;
+pub use super::connect_townhalls::Entity as ConnectTownhalls;
