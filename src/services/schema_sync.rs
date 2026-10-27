@@ -143,6 +143,8 @@ pub fn get_entity_registry() -> Vec<RegisteredEntity> {
         register_entity::<PolicyAcknowledgements>(),
         register_entity::<Vendors>(),
         register_entity::<Recognitions>(),
+        register_entity::<CompanyEvents>(),
+        register_entity::<CelebrationWishes>(),
         register_entity::<ConnectPosts>(),
         register_entity::<ConnectComments>(),
         register_entity::<ConnectFeedback>(),

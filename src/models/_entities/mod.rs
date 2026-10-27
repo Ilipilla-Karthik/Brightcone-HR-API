@@ -37,4 +37,6 @@ pub mod handbooks;
 pub mod policy_acknowledgements;
 pub mod vendors;
 pub mod recognitions;
+pub mod company_events;
+pub mod celebration_wishes;
 pub mod users;

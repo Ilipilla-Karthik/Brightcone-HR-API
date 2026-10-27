@@ -93,6 +93,8 @@ impl Hooks for App {
             .add_route(controllers::policy_acknowledgements::routes())
             .add_route(controllers::vendors::routes())
             .add_route(controllers::recognitions::routes())
+            .add_route(controllers::events::legacy_routes())
+            .add_route(controllers::celebrations::legacy_routes())
     }
 
     async fn connect_workers(ctx: &AppContext, queue: &Queue) -> Result<()> {

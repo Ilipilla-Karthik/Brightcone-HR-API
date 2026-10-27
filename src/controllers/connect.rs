@@ -157,61 +157,6 @@ pub async fn toggle_pin(
     format::json(updated)
 }
 
-pub async fn list_celebrations() -> Result<Response> {
-    format::json(json!([
-        {
-            "id": "cel_1",
-            "empId": "BC-1012",
-            "name": "Karthik Reddy",
-            "occasion": "Work anniversary",
-            "date": "2026-10-24",
-            "daysAway": 0,
-            "milestone": "3rd work anniversary",
-            "dept": "AI Research"
-        },
-        {
-            "id": "cel_2",
-            "empId": "BC-1004",
-            "name": "Ananya Rao",
-            "occasion": "Birthday",
-            "date": "2026-10-27",
-            "daysAway": 3,
-            "milestone": "Turning 28",
-            "dept": "People Ops"
-        },
-        {
-            "id": "cel_3",
-            "empId": "BC-1038",
-            "name": "Rahul Varma",
-            "occasion": "Work anniversary",
-            "date": "2026-10-30",
-            "daysAway": 6,
-            "milestone": "2nd work anniversary",
-            "dept": "Engineering"
-        },
-        {
-            "id": "cel_4",
-            "empId": "BC-1019",
-            "name": "Priya Menon",
-            "occasion": "Birthday",
-            "date": "2026-11-04",
-            "daysAway": 11,
-            "milestone": "Turning 32",
-            "dept": "Engineering"
-        },
-        {
-            "id": "cel_5",
-            "empId": "BC-1031",
-            "name": "Sneha Iyer",
-            "occasion": "Work anniversary",
-            "date": "2026-11-12",
-            "daysAway": 19,
-            "milestone": "1st work anniversary",
-            "dept": "Design"
-        }
-    ]))
-}
-
 pub async fn list_directory(State(ctx): State<AppContext>) -> Result<Response> {
     let emps = Employees::find().all(&ctx.db).await?;
     format::json(emps)
@@ -223,50 +168,6 @@ pub async fn list_groups() -> Result<Response> {
         { "id": "gp_design", "name": "Design & Craft", "members": 16, "description": "Design systems, UI/UX critiques" },
         { "id": "gp_founders", "name": "Book Club", "members": 24, "description": "Monthly books on craft and leadership" },
         { "id": "gp_fitness", "name": "Runners & Cyclists", "members": 32, "description": "Weekly weekend 5k and gravel rides" }
-    ]))
-}
-
-pub async fn list_events() -> Result<Response> {
-    format::json(json!([
-        {
-            "id": "EV-101",
-            "name": "Brightcone Diwali Celebration",
-            "etype": "Festival",
-            "date": "2026-10-31",
-            "time": "16:00",
-            "venue": "Hyderabad HQ, 4th Floor Cafeteria",
-            "organiser": "Ananya Rao",
-            "budget": 75000,
-            "att": 140,
-            "status": "Confirmed",
-            "notes": "Traditional attire, rangoli competition, sweets and high tea."
-        },
-        {
-            "id": "EV-102",
-            "name": "Agentic AI Hackathon 2026",
-            "etype": "Celebration",
-            "date": "2026-11-14",
-            "time": "09:00",
-            "venue": "Bengaluru Innovation Lab and Zoom",
-            "organiser": "Karthik Reddy",
-            "budget": 120000,
-            "att": 85,
-            "status": "Planned",
-            "notes": "48-hour build sprint on autonomous agents and workflows."
-        },
-        {
-            "id": "EV-103",
-            "name": "Annual Leadership Offsite",
-            "etype": "Offsite",
-            "date": "2026-11-28",
-            "time": "08:30",
-            "venue": "Goa Marriott Resort",
-            "organiser": "Naresh Vemparala",
-            "budget": 350000,
-            "att": 24,
-            "status": "Planned",
-            "notes": "FY27 product roadmap planning and executive team bonding."
-        }
     ]))
 }
 
@@ -339,10 +240,15 @@ pub fn routes() -> Routes {
         .add("/posts/{id}/comments", get(list_comments))
         .add("/posts/{id}/comments", post(add_comment))
         .add("/posts/{id}/pin", patch(toggle_pin))
-        .add("/celebrations", get(list_celebrations))
+        .add("/celebrations", get(crate::controllers::celebrations::list_celebrations))
+        .add("/celebrations/wish", post(crate::controllers::celebrations::send_wish))
         .add("/directory", get(list_directory))
         .add("/groups", get(list_groups))
-        .add("/events", get(list_events))
+        .add("/events", get(crate::controllers::events::list_events))
+        .add("/events", post(crate::controllers::events::create_event))
+        .add("/events/{id}", patch(crate::controllers::events::update_event))
+        .add("/events/{id}", put(crate::controllers::events::update_event))
+        .add("/events/{id}", delete(crate::controllers::events::delete_event))
         .add("/townhalls", get(list_townhalls))
         .add("/feedback", post(create_feedback))
         .add("/feedback", get(list_feedback))

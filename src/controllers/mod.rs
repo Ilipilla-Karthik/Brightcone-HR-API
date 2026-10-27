@@ -32,3 +32,5 @@ pub mod expenses;
 pub mod policy_acknowledgements;
 pub mod vendors;
 pub mod recognitions;
+pub mod events;
+pub mod celebrations;

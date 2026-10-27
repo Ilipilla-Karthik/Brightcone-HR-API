@@ -36,4 +36,6 @@ pub use super::handbooks::Entity as Handbooks;
 pub use super::policy_acknowledgements::Entity as PolicyAcknowledgements;
 pub use super::vendors::Entity as Vendors;
 pub use super::recognitions::Entity as Recognitions;
+pub use super::company_events::Entity as CompanyEvents;
+pub use super::celebration_wishes::Entity as CelebrationWishes;
 pub use super::users::Entity as Users;
