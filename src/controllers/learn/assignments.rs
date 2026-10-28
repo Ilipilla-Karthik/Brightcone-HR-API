@@ -1,3 +1,4 @@
+use serde::Deserialize;
 use std::collections::HashMap;
 use chrono::Local;
 use loco_rs::prelude::*;
@@ -205,4 +206,76 @@ pub async fn update_assignment_progress(
     };
 
     format::json(res)
+}
+
+#[derive(Deserialize)]
+pub struct AssignCoursePayload {
+    pub audience: Option<String>,
+    pub employee_ids: Option<Vec<String>>,
+    pub due_date: Option<String>,
+}
+
+#[debug_handler]
+pub async fn assign_course(
+    Path(course_id): Path<String>,
+    State(ctx): State<AppContext>,
+    Json(payload): Json<AssignCoursePayload>,
+) -> Result<Response> {
+    let Some(course) = CoursesEntity::find_by_id(&course_id).one(&ctx.db).await? else {
+        return not_found();
+    };
+
+    if let Some(due) = payload.due_date {
+        let mut course_active: crate::models::_entities::courses::ActiveModel = course.clone().into();
+        course_active.due_date = Set(Some(due));
+        let _ = course_active.update(&ctx.db).await;
+    }
+
+    let all_employees = crate::models::_entities::employees::Entity::find().all(&ctx.db).await?;
+    let targets: Vec<crate::models::_entities::employees::Model> = if let Some(ref emp_codes) = payload.employee_ids {
+        all_employees.into_iter().filter(|e| emp_codes.contains(&e.employee_code)).collect()
+    } else if let Some(ref aud) = payload.audience {
+        if aud == "Everyone" {
+            all_employees
+        } else if aud == "Managers" {
+            all_employees.into_iter().filter(|e| e.job_title.contains("Lead") || e.job_title.contains("Manager") || e.job_title.contains("Head")).collect()
+        } else {
+            all_employees.into_iter().filter(|e| e.department == *aud).collect()
+        }
+    } else {
+        all_employees
+    };
+
+    let now: chrono::DateTime<chrono::FixedOffset> = chrono::Local::now().into();
+    let mut assigned_count = 0;
+    for emp in targets {
+        let existing = CourseAssignmentsEntity::find()
+            .filter(course_assignments::Column::CourseId.eq(&course_id))
+            .filter(course_assignments::Column::EmployeeId.eq(&emp.employee_code))
+            .one(&ctx.db)
+            .await?;
+
+        if existing.is_none() {
+            let active = AssignmentActiveModel {
+                id: Set(uuid::Uuid::new_v4().to_string()),
+                course_id: Set(course_id.clone()),
+                employee_id: Set(emp.employee_code.clone()),
+                employee_name: Set(emp.full_name.clone()),
+                progress: Set(0),
+                status: Set("Not started".to_string()),
+                completed_at: Set(None),
+                created_at: Set(now),
+                updated_at: Set(now),
+            };
+            active.insert(&ctx.db).await?;
+            assigned_count += 1;
+        }
+    }
+
+    format::json(serde_json::json!({
+        "assigned": assigned_count,
+        "skipped": 0,
+        "failed": 0,
+        "message": "Assigned successfully"
+    }))
 }

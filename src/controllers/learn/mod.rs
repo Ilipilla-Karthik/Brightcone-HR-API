@@ -9,7 +9,7 @@ pub mod types;
 #[cfg(test)]
 mod tests;
 
-pub use assignments::{get_assignment, my_learning, update_assignment_progress};
+pub use assignments::{assign_course, get_assignment, my_learning, update_assignment_progress};
 pub use courses::{create_course, list_courses, update_course};
 pub use dashboard::dashboard;
 pub use extra::*;
@@ -26,6 +26,7 @@ pub fn routes() -> Routes {
         .add("/courses", get(list_courses))
         .add("/courses", post(create_course))
         .add("/courses/{id}", put(update_course))
+        .add("/courses/{id}/assign", post(assign_course))
         .add("/my-learning", get(my_learning))
         .add("/assignments/{id}", get(get_assignment))
         .add("/assignments/{id}/progress", post(update_assignment_progress))
@@ -35,6 +36,9 @@ pub fn routes() -> Routes {
         .add("/programmes/{id}", put(update_programme))
         .add("/programmes/{id}", delete(delete_programme))
         .add("/training", get(list_programmes))
+        .add("/training", post(create_programme))
+        .add("/training/{id}", put(update_programme))
+        .add("/training/{id}", delete(delete_programme))
         .add("/posh", get(list_posh))
         .add("/posh", post(create_posh))
         .add("/posh/{id}", put(update_posh))
@@ -45,6 +49,9 @@ pub fn routes() -> Routes {
         .add("/sectrain/{id}", delete(delete_sectrain))
         .add("/sectrain/bulk-assign", post(bulk_assign_sectrain))
         .add("/security", get(list_sectrain))
+        .add("/security", post(create_sectrain))
+        .add("/security/{id}", put(update_sectrain))
+        .add("/security/{id}", delete(delete_sectrain))
         .add("/categories", get(list_categories))
         .add("/categories", post(create_category))
         .add("/categories/{id}", put(update_category))

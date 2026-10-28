@@ -5,13 +5,16 @@ use uuid::Uuid;
 
 use crate::models::_entities::holidays::{self, ActiveModel, Entity, Model};
 
-#[derive(Debug, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug, Deserialize, Serialize, Default)]
 pub struct HolidayPayload {
     pub name: String,
+    #[serde(alias = "holidayDate", alias = "date")]
     pub holiday_date: String,
+    #[serde(default)]
     pub description: Option<String>,
+    #[serde(default, alias = "applicableLocation")]
     pub applicable_location: Option<String>,
+    #[serde(default, alias = "isRecurring")]
     pub is_recurring: Option<bool>,
 }
 

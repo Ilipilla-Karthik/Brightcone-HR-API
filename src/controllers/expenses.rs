@@ -80,7 +80,24 @@ fn get_store() -> &'static Arc<Mutex<ExpensesStore>> {
 #[debug_handler]
 pub async fn list_claims() -> Result<Response> {
     let store = get_store().lock().unwrap();
-    format::json(store.claims.clone())
+    let mut all = store.claims.clone();
+    for oe in &store.office_expenses {
+        all.push(ExpenseClaim {
+            id: oe.id.clone(),
+            employee_id: "OFFICE".to_string(),
+            employee_name: format!("Vendor: {}", oe.vendor_name),
+            category: oe.category.clone(),
+            amount: oe.total_amount,
+            date: oe.invoice_date.clone(),
+            description: format!("Invoice #{}: {} (GST: {}%)", oe.invoice_no, oe.category, oe.gst_rate),
+            receipt_url: None,
+            status: oe.status.clone(),
+            paid_at: None,
+            rejection_reason: None,
+            created_at: Utc::now().to_rfc3339(),
+        });
+    }
+    format::json(all)
 }
 
 #[debug_handler]
@@ -109,10 +126,13 @@ pub async fn approve_claim(Path(id): Path<String>) -> Result<Response> {
     let mut store = get_store().lock().unwrap();
     if let Some(claim) = store.claims.iter_mut().find(|c| c.id == id) {
         claim.status = "Approved".to_string();
-        format::json(claim.clone())
-    } else {
-        not_found()
+        return format::json(claim.clone());
     }
+    if let Some(oe) = store.office_expenses.iter_mut().find(|oe| oe.id == id) {
+        oe.status = "Approved".to_string();
+        return format::json(oe.clone());
+    }
+    not_found()
 }
 
 #[debug_handler]
@@ -124,10 +144,13 @@ pub async fn reject_claim(
     if let Some(claim) = store.claims.iter_mut().find(|c| c.id == id) {
         claim.status = "Rejected".to_string();
         claim.rejection_reason = Some(dto.reason);
-        format::json(claim.clone())
-    } else {
-        not_found()
+        return format::json(claim.clone());
     }
+    if let Some(oe) = store.office_expenses.iter_mut().find(|oe| oe.id == id) {
+        oe.status = "Rejected".to_string();
+        return format::json(oe.clone());
+    }
+    not_found()
 }
 
 #[debug_handler]
@@ -136,10 +159,13 @@ pub async fn pay_claim(Path(id): Path<String>) -> Result<Response> {
     if let Some(claim) = store.claims.iter_mut().find(|c| c.id == id) {
         claim.status = "Paid".to_string();
         claim.paid_at = Some(Utc::now().to_rfc3339());
-        format::json(claim.clone())
-    } else {
-        not_found()
+        return format::json(claim.clone());
     }
+    if let Some(oe) = store.office_expenses.iter_mut().find(|oe| oe.id == id) {
+        oe.status = "Paid".to_string();
+        return format::json(oe.clone());
+    }
+    not_found()
 }
 
 #[debug_handler]

@@ -78,9 +78,18 @@ pub async fn clock(
 
     if let Some(existing) = open_record {
         // Clock out
-        let mut active: ActiveModel = existing.into();
+        let mut active: ActiveModel = existing.clone().into();
         active.clock_out = Set(Some(time_str.clone()));
-        active.hours_worked = Set(Some("8 hrs 30 mins".to_string()));
+        let hours_str = if let Ok(in_time) = chrono::NaiveTime::parse_from_str(&existing.clock_in, "%I:%M %p") {
+            let now_time = chrono::Local::now().time();
+            let diff_minutes = (now_time - in_time).num_minutes().max(1);
+            let hrs = diff_minutes / 60;
+            let mins = diff_minutes % 60;
+            format!("{} hrs {} mins", hrs, mins)
+        } else {
+            "0 hrs 1 min".to_string()
+        };
+        active.hours_worked = Set(Some(hours_str));
         active.status = Set("Completed".to_string());
         let updated = active.update(&ctx.db).await?;
         format::json(serde_json::json!({

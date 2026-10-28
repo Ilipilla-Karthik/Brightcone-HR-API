@@ -78,8 +78,8 @@ pub async fn update_status(
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("/api/v1/leave")
+        .add("", get(my_leaves))
         .add("/my", get(my_leaves))
         .add("/apply", post(apply))
-        .add("/", get(my_leaves))
         .add("/{id}/status", patch(update_status))
 }

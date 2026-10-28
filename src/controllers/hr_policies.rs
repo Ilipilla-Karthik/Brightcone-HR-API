@@ -117,8 +117,8 @@ pub async fn remove(
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("/api/v1/policies")
-        .add("/", get(list))
-        .add("/", post(create))
+        .add("", get(list))
+        .add("", post(create))
         .add("/{id}", patch(update))
         .add("/{id}", delete(remove))
 }
