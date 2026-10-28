@@ -10,11 +10,17 @@ use crate::models::_entities::shifts::{self, ActiveModel, Entity, Model};
 pub struct ShiftPayload {
     pub name: String,
     pub code: String,
+    #[serde(alias = "start_time")]
     pub start_time: String,
+    #[serde(alias = "end_time")]
     pub end_time: String,
+    #[serde(alias = "break_duration_minutes")]
     pub break_duration_minutes: Option<i32>,
+    #[serde(alias = "grace_period_minutes")]
     pub grace_period_minutes: Option<i32>,
+    #[serde(alias = "is_overnight")]
     pub is_overnight: Option<bool>,
+    #[serde(alias = "is_active")]
     pub is_active: Option<bool>,
 }
 
@@ -23,11 +29,17 @@ pub struct ShiftPayload {
 pub struct UpdateShiftPayload {
     pub name: Option<String>,
     pub code: Option<String>,
+    #[serde(alias = "start_time")]
     pub start_time: Option<String>,
+    #[serde(alias = "end_time")]
     pub end_time: Option<String>,
+    #[serde(alias = "break_duration_minutes")]
     pub break_duration_minutes: Option<i32>,
+    #[serde(alias = "grace_period_minutes")]
     pub grace_period_minutes: Option<i32>,
+    #[serde(alias = "is_overnight")]
     pub is_overnight: Option<bool>,
+    #[serde(alias = "is_active")]
     pub is_active: Option<bool>,
 }
 

@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use uuid::Uuid;
 
-use crate::models::_entities::celebration_wishes::{self, ActiveModel as WishActiveModel, Entity as CelebrationWishes};
+use crate::models::_entities::celebration_wishes::ActiveModel as WishActiveModel;
 use crate::models::_entities::connect_posts::{ActiveModel as PostActiveModel};
 use crate::models::_entities::employees::{self, Entity as Employees};
 
@@ -116,7 +116,7 @@ pub async fn send_wish(
         author_id: Set("usr_current".to_string()),
         author_name: Set(sender.clone()),
         author_dept: Set(Some("Engineering".to_string())),
-        post_type: Set("celebration".to_string()),
+        post_type: Set("Celebration".to_string()),
         to_employee_id: Set(None),
         to_employee_name: Set(Some(payload.recipient_name.clone())),
         body: Set(format!("🎉 Sent a celebratory wish to {} for their {}: \"{}\"", payload.recipient_name, occasion, msg)),

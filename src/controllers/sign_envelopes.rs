@@ -1,14 +1,14 @@
 use chrono::{DateTime, Utc};
 use loco_rs::prelude::*;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Condition, EntityTrait, Order, QueryFilter, QueryOrder, Set,
+    ActiveModelTrait, ColumnTrait, Condition, EntityTrait, QueryFilter, QueryOrder, Set,
 };
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::json;
 use uuid::Uuid;
 
 use crate::models::_entities::sign_audit_events::{self, ActiveModel as AuditActiveModel, Entity as SignAuditEvents};
-use crate::models::_entities::sign_envelopes::{self, ActiveModel, Entity as SignEnvelopes, Model};
+use crate::models::_entities::sign_envelopes::{self, ActiveModel, Entity as SignEnvelopes};
 
 #[derive(Debug, Deserialize)]
 pub struct ListEnvelopesQuery {

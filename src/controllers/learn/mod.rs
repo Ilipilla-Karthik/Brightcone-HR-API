@@ -57,7 +57,7 @@ pub fn routes() -> Routes {
         .add("/categories/{id}", put(update_category))
         .add("/categories/{id}", delete(delete_category))
         .add("/skills", get(list_skills))
-        .add("/skills", post(rate_skill))
+        .add("/skills", post(create_skill))
         .add("/skills/matrix", get(skills_matrix))
         .add("/skills/rate", post(rate_skill))
         .add("/completion", get(completion_tracker))

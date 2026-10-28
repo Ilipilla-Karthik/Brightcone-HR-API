@@ -121,11 +121,46 @@ pub async fn clock(
     }
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct CreateAttendanceInput {
+    pub employee_code: Option<String>,
+    pub date: Option<String>,
+    pub attendance_status: Option<String>,
+    pub in_time: Option<String>,
+    pub out_time: Option<String>,
+    pub work_mode: Option<String>,
+    pub notes: Option<String>,
+}
+
+#[debug_handler]
+pub async fn create_record(
+    State(ctx): State<AppContext>,
+    Json(params): Json<CreateAttendanceInput>,
+) -> Result<Response> {
+    let today = chrono::Local::now().format("%Y-%m-%d").to_string();
+    let time_str = chrono::Local::now().format("%I:%M %p").to_string();
+    let code = params.employee_code.unwrap_or_else(|| "BC-1038".to_string());
+    let active = ActiveModel {
+        record_id: Set(Uuid::new_v4()),
+        employee_code: Set(code),
+        date: Set(params.date.unwrap_or(today)),
+        clock_in: Set(params.in_time.unwrap_or(time_str)),
+        clock_out: Set(params.out_time),
+        work_mode: Set(params.work_mode.unwrap_or_else(|| "Office".to_string())),
+        hours_worked: Set(Some("8.5 hrs".to_string())),
+        status: Set(params.attendance_status.unwrap_or_else(|| "Present".to_string())),
+        ..Default::default()
+    };
+    let record = active.insert(&ctx.db).await?;
+    format::json(record)
+}
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("/api/v1/attendance")
+        .add("", get(my_attendance))
+        .add("", post(create_record))
         .add("/my", get(my_attendance))
         .add("/status", get(status))
         .add("/clock", post(clock))
-        .add("/", get(my_attendance))
 }

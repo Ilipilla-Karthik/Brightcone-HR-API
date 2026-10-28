@@ -1,16 +1,16 @@
 use chrono::{DateTime, Utc};
 use loco_rs::prelude::*;
-use sea_orm::{
-    ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter, QueryOrder, Set,
-};
-use serde::{Deserialize, Serialize};
+use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter, QueryOrder, Set};
+use serde::Deserialize;
 use serde_json::json;
 use uuid::Uuid;
 
 use crate::models::_entities::connect_comments::{self, ActiveModel as CommentActiveModel, Entity as ConnectComments};
 use crate::models::_entities::connect_feedback::{self, ActiveModel as FeedbackActiveModel, Entity as ConnectFeedback};
-use crate::models::_entities::connect_posts::{self, ActiveModel as PostActiveModel, Entity as ConnectPosts, Model as PostModel};
-use crate::models::_entities::employees::{self, Entity as Employees};
+use crate::models::_entities::connect_posts::{
+    self, ActiveModel as PostActiveModel, Entity as ConnectPosts,
+};
+use crate::models::_entities::employees::Entity as Employees;
 
 #[derive(Debug, Deserialize)]
 pub struct CreatePostPayload {
