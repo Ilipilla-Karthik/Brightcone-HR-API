@@ -28,6 +28,8 @@ pub mod internships;
 pub mod hr_policies;
 pub mod handbooks;
 pub mod payroll;
+pub mod payroll_store;
+pub mod payroll_compliance;
 pub mod expenses;
 pub mod policy_acknowledgements;
 pub mod vendors;

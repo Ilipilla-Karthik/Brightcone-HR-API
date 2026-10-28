@@ -385,12 +385,6 @@ impl ActiveModel {
     }
 
     /// Verifies and invalidates the magic link after successful authentication.
-    ///
-    /// Clears the magic link token and expiration time after the user has
-    /// successfully authenticated using the magic link.
-    ///
-    /// # Errors
-    /// - Returns an error if database update fails
     pub async fn clear_magic_link(mut self, db: &DatabaseConnection) -> ModelResult<Model> {
         self.magic_link_token = ActiveValue::set(None);
         self.magic_link_expiration = ActiveValue::set(None);
