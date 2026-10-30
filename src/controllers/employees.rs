@@ -289,19 +289,16 @@ pub async fn me_profile(
     auth: Option<auth::JWT>,
     State(ctx): State<AppContext>,
 ) -> Result<Response> {
-    let email = if let Some(a) = auth {
-        if let Ok(u) = crate::models::_entities::users::Entity::find()
-            .filter(crate::models::_entities::users::Column::Pid.eq(a.claims.pid))
-            .one(&ctx.db)
-            .await
-        {
-            u.map(|user| user.email)
-                .unwrap_or_else(|| "rahul.varma@brightcone.ai".to_string())
-        } else {
-            "rahul.varma@brightcone.ai".to_string()
-        }
-    } else {
-        "rahul.varma@brightcone.ai".to_string()
+    let Some(a) = auth else {
+        return not_found();
+    };
+    let email = match crate::models::_entities::users::Entity::find()
+        .filter(crate::models::_entities::users::Column::Pid.eq(a.claims.pid))
+        .one(&ctx.db)
+        .await?
+    {
+        Some(u) => u.email,
+        None => return not_found(),
     };
 
     let record = Entity::find()
@@ -311,17 +308,43 @@ pub async fn me_profile(
 
     match record {
         Some(e) => format::json(e),
-        None => {
-            let fallback = Entity::find()
-                .filter(employees::Column::EmployeeCode.eq("BC-1038"))
-                .one(&ctx.db)
-                .await?;
-            match fallback {
-                Some(e) => format::json(e),
-                None => not_found(),
-            }
-        }
+        None => not_found(),
     }
+}
+
+/// Soft delete: the employee row is never destroyed. The status moves to
+/// `Exited` (one of the spec statuses) and the roster stops listing them as
+/// active, so the action stays reversible.
+#[debug_handler]
+pub async fn remove(
+    State(ctx): State<AppContext>,
+    Path(id): Path<String>,
+) -> Result<Response> {
+    let record = if let Ok(uuid) = Uuid::parse_str(&id) {
+        Entity::find()
+            .filter(employees::Column::EmpId.eq(uuid))
+            .one(&ctx.db)
+            .await?
+    } else if let Ok(num_id) = id.parse::<i64>() {
+        Entity::find()
+            .filter(employees::Column::Id.eq(num_id))
+            .one(&ctx.db)
+            .await?
+    } else {
+        Entity::find()
+            .filter(employees::Column::EmployeeCode.eq(&id))
+            .one(&ctx.db)
+            .await?
+    };
+
+    let Some(existing) = record else {
+        return not_found();
+    };
+
+    let mut active: ActiveModel = existing.into();
+    active.status = Set("Exited".to_string());
+    let updated = active.update(&ctx.db).await?;
+    format::json(updated)
 }
 
 pub use super::employees_csv::{export_csv, import_csv, ImportRequest};
@@ -338,4 +361,5 @@ pub fn routes() -> Routes {
         .add("/{id}", get(get_one))
         .add("/{id}", patch(update))
         .add("/{id}", put(update))
+        .add("/{id}", delete(remove))
 }

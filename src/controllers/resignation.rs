@@ -32,17 +32,32 @@ pub async fn initiate(
     State(ctx): State<AppContext>,
     Json(params): Json<ResignationParams>,
 ) -> Result<Response> {
-    let code = params
-        .employee_code
-        .unwrap_or_else(|| "BC-1038".to_string());
-    let name = params
-        .employee_name
-        .unwrap_or_else(|| "Rahul Varma".to_string());
+    let code = params.employee_code.unwrap_or_default();
+    let trimmed = code.trim().to_string();
+    if trimmed.is_empty() {
+        return bad_request("employee_code is required to initiate a resignation.");
+    }
+    let name = match params.employee_name {
+        Some(n) if !n.trim().is_empty() => n,
+        _ => {
+            // Resolve the name from the employee directory instead of guessing.
+            match crate::models::_entities::employees::Entity::find()
+                .filter(
+                    crate::models::_entities::employees::Column::EmployeeCode.eq(&trimmed),
+                )
+                .one(&ctx.db)
+                .await?
+            {
+                Some(e) => e.full_name,
+                None => return bad_request("Unknown employee_code."),
+            }
+        }
+    };
     let notice = params.notice_period_days.unwrap_or(60);
 
     let active = ActiveModel {
         request_id: Set(Uuid::new_v4()),
-        employee_code: Set(code),
+        employee_code: Set(trimmed),
         employee_name: Set(name),
         reason: Set(params.reason),
         proposed_last_day: Set(params.proposed_last_day),

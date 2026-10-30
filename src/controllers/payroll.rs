@@ -223,17 +223,28 @@ pub async fn list_revisions(State(ctx): State<AppContext>) -> Result<Response> {
                 res.push(serde_json::json!({
                     "id": id,
                     "employeeId": employee_id,
+                    "employee_id": employee_id,
+                    "employeeCode": employee_id,
+                    "employee_code": employee_id,
                     "employeeName": employee_name,
+                    "employee_name": employee_name,
                     "dept": dept,
+                    "department": dept,
                     "appraisalCycle": cycle,
+                    "appraisal_cycle": cycle,
                     "rating": rating,
                     "currentCtc": current_ctc,
+                    "current_ctc": current_ctc,
                     "revisedCtc": revised_ctc,
+                    "revised_ctc": revised_ctc,
                     "changePct": change_pct,
+                    "percentage_increase": change_pct,
                     "effectiveDate": eff,
+                    "effective_date": eff,
                     "approver": approver,
                     "status": status,
-                    "isArchived": is_archived
+                    "isArchived": is_archived,
+                    "is_archived": is_archived
                 }));
             }
             return format::json(res);
@@ -249,23 +260,55 @@ pub async fn create_revision(State(ctx): State<AppContext>, Json(mut payload): J
         .unwrap_or_else(|| format!("SR-{}", Utc::now().timestamp_subsec_millis()));
     payload["id"] = Value::String(id.clone());
 
-    let emp_id = payload.get("employeeId").and_then(|v| v.as_str()).unwrap_or("BC-1006");
-    let emp_name = payload.get("employeeName").and_then(|v| v.as_str()).unwrap_or("Rahul Varma");
-    let dept = payload.get("dept").and_then(|v| v.as_str()).unwrap_or("Engineering");
-    let cycle = payload.get("appraisalCycle").and_then(|v| v.as_str()).unwrap_or("Annual Appraisal 2026-27");
+    let emp_id = payload.get("employeeId")
+        .or_else(|| payload.get("employee_id"))
+        .or_else(|| payload.get("employee_code"))
+        .and_then(|v| v.as_str()).unwrap_or("BC-1006").to_string();
+    let emp_name = payload.get("employeeName")
+        .or_else(|| payload.get("employee_name"))
+        .and_then(|v| v.as_str()).unwrap_or("Rahul Varma").to_string();
+    let dept = payload.get("dept")
+        .or_else(|| payload.get("department"))
+        .and_then(|v| v.as_str()).unwrap_or("Engineering").to_string();
+    let cycle = payload.get("appraisalCycle")
+        .or_else(|| payload.get("appraisal_cycle"))
+        .and_then(|v| v.as_str()).unwrap_or("Annual Appraisal 2026-27").to_string();
     let rating = payload.get("rating").and_then(|v| v.as_i64()).unwrap_or(4);
-    let cur_ctc = payload.get("currentCtc").and_then(|v| v.as_f64()).unwrap_or(2100000.0);
-    let rev_ctc = payload.get("revisedCtc").and_then(|v| v.as_f64()).unwrap_or(2400000.0);
-    let change = payload.get("changePct").and_then(|v| v.as_f64()).unwrap_or(14.29);
-    let eff = payload.get("effectiveDate").and_then(|v| v.as_str()).unwrap_or("2026-11-01");
-    let approver = payload.get("approver").and_then(|v| v.as_str()).unwrap_or("Naresh Vemparala");
-    let status = payload.get("status").and_then(|v| v.as_str()).unwrap_or("Pending");
+    let cur_ctc = payload.get("currentCtc")
+        .or_else(|| payload.get("current_ctc"))
+        .and_then(|v| v.as_f64()).unwrap_or(2100000.0);
+    let rev_ctc = payload.get("revisedCtc")
+        .or_else(|| payload.get("revised_ctc"))
+        .and_then(|v| v.as_f64()).unwrap_or(2400000.0);
+    let change = payload.get("changePct")
+        .or_else(|| payload.get("percentage_increase"))
+        .and_then(|v| v.as_f64()).unwrap_or(14.29);
+    let eff = payload.get("effectiveDate")
+        .or_else(|| payload.get("effective_date"))
+        .and_then(|v| v.as_str()).unwrap_or("2026-11-01").to_string();
+    let approver = payload.get("approver").and_then(|v| v.as_str()).unwrap_or("Naresh Vemparala").to_string();
+    let status = payload.get("status").and_then(|v| v.as_str()).unwrap_or("Pending").to_string();
 
     let sql = format!(
         "INSERT INTO payroll_revisions (id, employee_id, employee_name, dept, appraisal_cycle, rating, current_ctc, revised_ctc, change_pct, effective_date, approver, status) VALUES ('{}', '{}', '{}', '{}', '{}', {}, {}, {}, {}, '{}', '{}', '{}') ON CONFLICT (id) DO UPDATE SET revised_ctc = {}, status = '{}'",
         id, emp_id, emp_name.replace('\'', "''"), dept, cycle.replace('\'', "''"), rating, cur_ctc, rev_ctc, change, eff, approver.replace('\'', "''"), status, rev_ctc, status
     );
     let _ = ctx.db.execute_unprepared(&sql).await;
+
+    payload["employeeId"] = serde_json::json!(emp_id);
+    payload["employee_id"] = serde_json::json!(emp_id);
+    payload["employee_code"] = serde_json::json!(emp_id);
+    payload["employeeName"] = serde_json::json!(emp_name);
+    payload["employee_name"] = serde_json::json!(emp_name);
+    payload["currentCtc"] = serde_json::json!(cur_ctc);
+    payload["current_ctc"] = serde_json::json!(cur_ctc);
+    payload["revisedCtc"] = serde_json::json!(rev_ctc);
+    payload["revised_ctc"] = serde_json::json!(rev_ctc);
+    payload["changePct"] = serde_json::json!(change);
+    payload["percentage_increase"] = serde_json::json!(change);
+    payload["effectiveDate"] = serde_json::json!(eff);
+    payload["effective_date"] = serde_json::json!(eff);
+    payload["status"] = serde_json::json!(status);
 
     let mut s = get_store().lock().unwrap();
     s.revisions.insert(0, payload.clone());
@@ -286,6 +329,9 @@ pub fn routes() -> Routes {
         .add("/structures", post(create_structure))
         .add("/revisions", get(list_revisions))
         .add("/revisions", post(create_revision))
+        .add("/salary-revisions", get(list_revisions))
+        .add("/salary-revisions", post(create_revision))
+        .add("/salary-revisions/{id}", post(create_revision))
 }
 
 pub fn v1_routes() -> Routes {
@@ -302,4 +348,7 @@ pub fn v1_routes() -> Routes {
         .add("/structures", post(create_structure))
         .add("/revisions", get(list_revisions))
         .add("/revisions", post(create_revision))
+        .add("/salary-revisions", get(list_revisions))
+        .add("/salary-revisions", post(create_revision))
+        .add("/salary-revisions/{id}", post(create_revision))
 }

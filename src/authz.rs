@@ -14,7 +14,7 @@ use loco_rs::{
 };
 use serde::Serialize;
 
-use crate::{database::Database, models::users};
+use crate::models::users;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -51,7 +51,11 @@ impl Role {
 
     #[must_use]
     pub fn parse(value: &str) -> Option<Self> {
-        Self::ALL.into_iter().find(|r| r.as_str() == value)
+        // The users table stores roles uppercase ("HR_ADMIN", "EMPLOYEE").
+        let normalized = value.trim().to_ascii_lowercase();
+        Self::ALL
+            .into_iter()
+            .find(|r| r.as_str() == normalized)
     }
 }
 
@@ -194,14 +198,11 @@ impl AuthUser {
     /// Checks a permission and returns its scope.
     ///
     /// # Errors
-    /// `403` when the role lacks the permission, or when the user must change their password first.
+    /// `403` when the role lacks the permission.
     pub fn require(&self, permission: &str) -> Result<Scope> {
-        if self.user.must_change_password {
-            return Err(forbidden(
-                "password_change_required",
-                "You must change your password before continuing.",
-            ));
-        }
+        // NOTE: the `users` table has no `must_change_password` / `status`
+        // columns (verified against the live schema), so only the role →
+        // permission table gates access here.
         scope_for(self.role, permission)
             .ok_or_else(|| forbidden("forbidden", "You do not have access to this."))
     }
@@ -216,13 +217,9 @@ impl FromRequestParts<AppContext> for AuthUser {
     ) -> std::result::Result<Self, Self::Rejection> {
         let jwt = extract_jwt_from_request_parts(parts, ctx)?;
         let unauthorized = || Error::Unauthorized("Please sign in.".to_owned());
-        let db = Database::from_context(ctx)?;
-        let user = users::Model::find_by_pid(&db, &jwt.claims.pid)
+        let user = users::Model::find_by_pid(&ctx.db, &jwt.claims.pid)
             .await
             .map_err(|_| unauthorized())?;
-        if user.status != "active" {
-            return Err(unauthorized());
-        }
         let role = Role::parse(&user.role).ok_or_else(unauthorized)?;
         Ok(Self { user, role })
     }

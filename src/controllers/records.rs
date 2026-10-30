@@ -1,283 +1,296 @@
-use diesel::{
-    prelude::QueryableByName,
-    sql_query,
-    sql_types::{BigInt, Jsonb, Nullable, Text, Uuid as SqlUuid},
-};
-use diesel_async::{AsyncConnection, RunQueryDsl};
+//! Generic, registry-driven records API — the live `R` engine of the HTML spec.
+//!
+//! One controller serves every registry kind (`services::rec_defs`):
+//! - `GET    /api/v1/rec/defs`                 kind summaries
+//! - `GET    /api/v1/rec/:kind`                list records (HTML field keys)
+//! - `POST   /api/v1/rec/:kind`                create
+//! - `GET    /api/v1/rec/:kind/export`         CSV export
+//! - `GET    /api/v1/rec/:kind/:code`          one record
+//! - `PUT|PATCH /api/v1/rec/:kind/:code`       patch update (+ history entry)
+//! - `POST   /api/v1/rec/:kind/:code/archive`  archive / restore
+//! The same routes are mounted a second time at `/api/rec/*` (PLAN.md contract).
+//!
+//! Security: every handler needs a signed-in [`AuthUser`]. Reads are owner
+//! scoped unless the role holds `records:read` (HR) or the domain permission
+//! for the kind; writes need `records:manage` (HR), `payroll:manage` or
+//! `recruitment:manage`, except a signed-in employee may add/update rows that
+//! are about themselves — and then only with the registry's own status default
+//! (a self-service row can never approve itself).
+use crate::authz::{forbidden, AuthUser};
+use crate::services::rec_defs;
+use crate::services::rec_store;
 use loco_rs::prelude::*;
-use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
-use uuid::Uuid;
+use serde_json::Value;
 
-use crate::{
-    authz::AuthUser,
-    database::Database,
-    models::error::ModelError,
-    records,
-    rule_engine::{self, RuleEventPayload},
-};
+use super::records_helpers::*;
 
-#[derive(Debug, Deserialize, ToSchema)]
-pub struct RecordInput {
-    pub source_id: String,
-    pub data: serde_json::Value,
-}
-
-#[derive(Debug, Deserialize, ToSchema)]
-pub struct RecordUpdateInput {
-    pub data: serde_json::Value,
-}
-
-#[derive(Debug, Serialize, ToSchema, QueryableByName)]
-pub struct Record {
-    #[diesel(sql_type = SqlUuid)]
-    pub id: Uuid,
-    #[diesel(sql_type = Text)]
-    pub record_type: String,
-    #[diesel(sql_type = Text)]
-    pub source_id: String,
-    #[diesel(sql_type = Jsonb)]
-    pub data: serde_json::Value,
-    #[diesel(sql_type = Nullable<Text>)]
-    pub archived_at: Option<String>,
-    #[diesel(sql_type = Text)]
-    pub created_at: String,
-    #[diesel(sql_type = Text)]
-    pub updated_at: String,
-}
-
-#[derive(Debug, Serialize, ToSchema)]
-pub struct RecordPage {
-    pub items: Vec<Record>,
-}
-
-#[derive(Debug, Serialize, ToSchema, QueryableByName)]
-pub struct HistoryEntry {
-    #[diesel(sql_type = BigInt)]
-    pub id: i64,
-    #[diesel(sql_type = SqlUuid)]
-    pub record_id: Uuid,
-    #[diesel(sql_type = Text)]
-    pub action: String,
-    #[diesel(sql_type = BigInt)]
-    pub actor_user_id: i64,
-    #[diesel(sql_type = Nullable<Jsonb>)]
-    pub before_data: Option<serde_json::Value>,
-    #[diesel(sql_type = Nullable<Jsonb>)]
-    pub after_data: Option<serde_json::Value>,
-    #[diesel(sql_type = Text)]
-    pub created_at: String,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct ListQuery {
-    pub limit: Option<i64>,
-    pub include_archived: Option<bool>,
-}
-
-fn require_hr(auth: &AuthUser) -> Result<()> {
-    auth.require("records:manage").map(|_| ())
-}
-
-fn validate_type(record_type: &str) -> Result<()> {
-    if records::is_registered(record_type) {
-        Ok(())
-    } else {
-        Err(Error::BadRequest("Unknown record type.".to_owned()))
-    }
-}
-
-fn validate_input(record_type: &str, input: &RecordInput) -> Result<serde_json::Value> {
-    if input.source_id.trim().is_empty() || input.source_id.len() > 128 {
-        return Err(Error::BadRequest(
-            "source_id must be 1 to 128 characters.".to_owned(),
-        ));
-    }
-    records::validate_record(record_type, &input.data).map_err(Error::BadRequest)
-}
-
-fn record_model_error(error: ModelError) -> Error {
-    match error {
-        ModelError::EntityAlreadyExists => Error::CustomError(
-            axum::http::StatusCode::CONFLICT,
-            loco_rs::controller::ErrorDetail::new("conflict", "Record source_id already exists."),
-        ),
-        other => Error::from(other),
-    }
-}
-
-#[utoipa::path(get, path = "/api/records/{record_type}", security(("bearer" = [])), params(("record_type" = String, Path), ("limit" = Option<i64>, Query), ("include_archived" = Option<bool>, Query)), responses((status = 200, body = RecordPage)))]
+/// `GET /rec/defs` — every registry kind as a compact summary.
 #[debug_handler]
-pub async fn list(
+pub async fn list_kinds(
+    auth: AuthUser,
+    State(_ctx): State<AppContext>,
+) -> Result<Json<Vec<KindSummary>>> {
+    let _ = auth; // signed-in only: metadata carries no personal data
+    let kinds = rec_defs::all_kinds()
+        .map(|k| KindSummary {
+            key: k.kind().to_string(),
+            title: k.title().to_string(),
+            one: k.one().to_string(),
+            icon: k.icon().to_string(),
+            app: k.app().to_string(),
+            fields: k.fields().len(),
+        })
+        .collect();
+    Ok(Json(kinds))
+}
+
+/// `GET /rec/:kind` — list a kind's records.
+#[debug_handler]
+pub async fn list_records(
     auth: AuthUser,
     State(ctx): State<AppContext>,
     Path(kind): Path<String>,
-    Query(query): Query<ListQuery>,
-) -> Result<Response> {
-    require_hr(&auth)?;
-    validate_type(&kind)?;
-    let limit = query.limit.unwrap_or(100).clamp(1, 500);
-    let db = Database::from_context(&ctx)?;
-    let mut conn = db.get().await?;
-    let items = sql_query("SELECT id, record_type, source_id, data, archived_at::text AS archived_at, created_at::text AS created_at, updated_at::text AS updated_at FROM hr_records WHERE record_type = $1 AND ($2 OR archived_at IS NULL) ORDER BY created_at DESC LIMIT $3")
-        .bind::<Text, _>(&kind).bind::<diesel::sql_types::Bool, _>(query.include_archived.unwrap_or(false))
-        .bind::<BigInt, _>(limit).load::<Record>(&mut *conn).await.map_err(Database::map_error)?;
-    format::json(RecordPage { items })
+    Query(q): Query<ListQuery>,
+) -> Result<Json<Vec<Value>>> {
+    let def = def_for(&kind)?;
+    let t = table_for(&kind)?;
+    let access = access_of(&ctx, &auth, &kind).await?;
+    let mut rows = scope(&access, load_rows(&ctx, def, t, q.archived.unwrap_or(false)).await?);
+    if let (Some(page), Some(size)) = (q.page, q.page_size) {
+        if page > 0 && size > 0 {
+            let skip = usize::try_from((page - 1) * size).unwrap_or(0);
+            rows = rows.into_iter().skip(skip).take(size as usize).collect();
+        }
+    }
+    Ok(Json(rows))
 }
 
-#[utoipa::path(post, path = "/api/records/{record_type}", security(("bearer" = [])), request_body = RecordInput, responses((status = 201, body = Record)))]
+/// `GET /rec/:kind/:code` — one record, or 404 when it is out of scope.
 #[debug_handler]
-pub async fn create(
+pub async fn get_record(
+    auth: AuthUser,
+    State(ctx): State<AppContext>,
+    Path((kind, code)): Path<(String, String)>,
+) -> Result<Json<Value>> {
+    def_for(&kind)?;
+    table_for(&kind)?;
+    let access = access_of(&ctx, &auth, &kind).await?;
+    let record = rec_store::get_by_code(&ctx.db, &kind, &code).await?;
+    match record {
+        Some(r) if matches!(&access, Access::All) || is_own_ids(&access, &r, READ_KEYS) => {
+            Ok(Json(r))
+        }
+        _ => not_found(),
+    }
+}
+
+/// `POST /rec/:kind` — create a record.
+#[debug_handler]
+pub async fn create_record(
     auth: AuthUser,
     State(ctx): State<AppContext>,
     Path(kind): Path<String>,
-    Json(input): Json<RecordInput>,
-) -> Result<Response> {
-    require_hr(&auth)?;
-    validate_type(&kind)?;
-    let data = validate_input(&kind, &input)?;
-    let source_id = input.source_id;
-    let db = Database::from_context(&ctx)?;
-    let mut conn = db.get().await?;
-    let actor = auth.user.id;
-    let (row, event_id) = conn.transaction::<(Record, Option<Uuid>), ModelError, _>(async move |conn| {
-        let row = sql_query("INSERT INTO hr_records(record_type, source_id, data, created_by, updated_by) VALUES ($1,$2,$3,$4,$4) RETURNING id, record_type, source_id, data, archived_at::text AS archived_at, created_at::text AS created_at, updated_at::text AS updated_at")
-            .bind::<Text, _>(&kind).bind::<Text, _>(&source_id).bind::<Jsonb, _>(&data).bind::<BigInt, _>(actor)
-            .get_result::<Record>(&mut *conn).await?;
-        sql_query("INSERT INTO hr_record_history(record_id, action, actor_user_id, after_data) VALUES ($1,'created',$2,$3)")
-            .bind::<SqlUuid, _>(row.id).bind::<BigInt, _>(actor).bind::<Jsonb, _>(&data)
-            .execute(&mut *conn).await?;
-        for claim in records::unique_claims(&kind, &data) {
-            sql_query("INSERT INTO hr_record_unique_claims(record_type,field_key,normalized_value,record_id) VALUES ($1,$2,$3,$4)")
-                .bind::<Text,_>(&kind).bind::<Text,_>(&claim.field_key).bind::<Text,_>(&claim.normalized_value)
-                .bind::<SqlUuid,_>(row.id).execute(&mut *conn).await?;
-        }
-        let event_id = if let Some(key) = rule_engine::event_key(&kind, "created", None, &data) {
-            rule_engine::record_event(conn, key, &RuleEventPayload {
-                record_id: row.id,
-                record_type: kind.clone(),
-                actor_user_id: actor,
-            })
-            .await?
-        } else {
-            None
-        };
-        Ok((row, event_id))
-    }).await.map_err(record_model_error)?;
-    rule_engine::dispatch(&ctx, event_id).await;
-    format::render().status(201).json(row)
-}
+    Json(rec): Json<Value>,
+) -> Result<Json<Value>> {
+    let def = def_for(&kind)?;
+    let access = access_of(&ctx, &auth, &kind).await?;
+    let mut obj = as_object(rec)?;
 
-async fn change(
-    auth: AuthUser,
-    ctx: AppContext,
-    id: Uuid,
-    input: Option<serde_json::Value>,
-    action: &'static str,
-) -> Result<Response> {
-    require_hr(&auth)?;
-    let db = Database::from_context(&ctx)?;
-    let mut conn = db.get().await?;
-    let actor = auth.user.id;
-    let (row, event_id) = conn.transaction::<(Record, Option<Uuid>), ModelError, _>(async move |conn| {
-        let old = sql_query("SELECT id, record_type, source_id, data, archived_at::text AS archived_at, created_at::text AS created_at, updated_at::text AS updated_at FROM hr_records WHERE id=$1 FOR UPDATE")
-            .bind::<SqlUuid, _>(id).get_result::<Record>(&mut *conn).await?;
-        let new_data = match input {
-            Some(value) => records::validate_record(&old.record_type, &value)
-                .map_err(ModelError::Validation)?,
-            None => old.data.clone(),
-        };
-        if action == "updated" {
-            sql_query("DELETE FROM hr_record_unique_claims WHERE record_id=$1")
-                .bind::<SqlUuid,_>(id).execute(&mut *conn).await?;
-        }
-        let updated = match action {
-            "updated" => sql_query("UPDATE hr_records SET data=$2, updated_by=$3, updated_at=now() WHERE id=$1 RETURNING id, record_type, source_id, data, archived_at::text AS archived_at, created_at::text AS created_at, updated_at::text AS updated_at").bind::<SqlUuid,_>(id).bind::<Jsonb,_>(&new_data).bind::<BigInt,_>(actor).get_result::<Record>(&mut *conn).await?,
-            "archived" => sql_query("UPDATE hr_records SET archived_at=now(), updated_by=$2, updated_at=now() WHERE id=$1 AND archived_at IS NULL RETURNING id, record_type, source_id, data, archived_at::text AS archived_at, created_at::text AS created_at, updated_at::text AS updated_at").bind::<SqlUuid,_>(id).bind::<BigInt,_>(actor).get_result::<Record>(&mut *conn).await?,
-            _ => sql_query("UPDATE hr_records SET archived_at=NULL, updated_by=$2, updated_at=now() WHERE id=$1 AND archived_at IS NOT NULL RETURNING id, record_type, source_id, data, archived_at::text AS archived_at, created_at::text AS created_at, updated_at::text AS updated_at").bind::<SqlUuid,_>(id).bind::<BigInt,_>(actor).get_result::<Record>(&mut *conn).await?,
-        };
-        if action == "updated" {
-            for claim in records::unique_claims(&old.record_type, &new_data) {
-                sql_query("INSERT INTO hr_record_unique_claims(record_type,field_key,normalized_value,record_id) VALUES ($1,$2,$3,$4)")
-                    .bind::<Text,_>(&old.record_type).bind::<Text,_>(&claim.field_key).bind::<Text,_>(&claim.normalized_value)
-                    .bind::<SqlUuid,_>(id).execute(&mut *conn).await?;
+    // Registry defaults (`status: Pending`, `half: No`, ...) apply first.
+    for (k, v) in def.defaults() {
+        obj.entry(k.clone())
+            .or_insert_with(|| Value::String(v.clone()));
+    }
+
+    match &access {
+        Access::All => {
+            if !manages(&auth, &kind) {
+                return Err(forbidden(
+                    "records:manage",
+                    "You do not have access to this.",
+                ));
             }
         }
-        sql_query("INSERT INTO hr_record_history(record_id, action, actor_user_id, before_data, after_data) VALUES ($1,$2,$3,$4,$5)")
-            .bind::<SqlUuid,_>(id).bind::<Text,_>(action).bind::<BigInt,_>(actor).bind::<Jsonb,_>(&old.data).bind::<Jsonb,_>(&new_data)
-            .execute(&mut *conn).await?;
-        let event_id = if let Some(key) = rule_engine::event_key(
-            &old.record_type,
-            action,
-            Some(&old.data),
-            &new_data,
-        ) {
-            rule_engine::record_event(conn, key, &RuleEventPayload {
-            record_id: updated.id,
-            record_type: old.record_type.clone(),
-            actor_user_id: actor,
-            })
-            .await?
-        } else {
-            None
-        };
-        Ok((updated, event_id))
-    }).await.map_err(record_model_error)?;
-    rule_engine::dispatch(&ctx, event_id).await;
-    format::json(row)
+        Access::Own(ids) => {
+            if !is_own(ids, &Value::Object(obj.clone()), SUBJECT_KEYS) {
+                return Err(forbidden(
+                    "records:manage",
+                    "You can only add records about yourself.",
+                ));
+            }
+            // Self-service rows never decide their own outcome.
+            if let Some(status) = def.defaults().get("status") {
+                obj.insert("status".into(), Value::String(status.clone()));
+            }
+            obj.remove("approver");
+        }
+    }
+
+    let created = rec_store::create_rec(&ctx.db, &kind, &obj)
+        .await
+        .map_err(Error::BadRequest)?;
+    Ok(Json(created))
 }
 
-#[utoipa::path(put, path = "/api/records/{id}", security(("bearer" = [])), request_body = RecordUpdateInput, responses((status = 200, body = Record)))]
+/// `PUT|PATCH /rec/:kind/:code` — patch a record and journal the change.
 #[debug_handler]
-pub async fn update(
+pub async fn update_record(
     auth: AuthUser,
     State(ctx): State<AppContext>,
-    Path(id): Path<Uuid>,
-    Json(input): Json<RecordUpdateInput>,
-) -> Result<Response> {
-    change(auth, ctx, id, Some(input.data), "updated").await
+    Path((kind, code)): Path<(String, String)>,
+    Json(rec): Json<Value>,
+) -> Result<Json<Value>> {
+    let def = def_for(&kind)?;
+    let t = table_for(&kind)?;
+    let access = access_of(&ctx, &auth, &kind).await?;
+    let existing = rec_store::get_by_code(&ctx.db, &kind, &code)
+        .await?
+        .ok_or(Error::NotFound)?;
+    let _ = (def, t);
+
+    match &access {
+        Access::All => {
+            if !manages(&auth, &kind) {
+                return Err(forbidden(
+                    "records:manage",
+                    "You do not have access to this.",
+                ));
+            }
+        }
+        Access::Own(ids) => {
+            if !is_own(ids, &existing, SUBJECT_KEYS) {
+                return not_found(); // 404, not 403, for other people's rows
+            }
+        }
+    }
+
+    let mut patch = as_object(rec)?;
+    if matches!(access, Access::Own(_)) {
+        patch.remove("status");
+        patch.remove("approver");
+    }
+    let changed: Vec<String> = patch.keys().cloned().collect();
+    let mut history: Vec<Value> = existing
+        .get("history")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    history.push(serde_json::json!({
+        "at": chrono::Utc::now().to_rfc3339(),
+        "by": auth.user.email,
+        "fields": changed,
+    }));
+    let history_json = Value::Array(history).to_string();
+    let updated =
+        rec_store::update_rec(&ctx.db, &kind, &code, &patch, &history_json)
+            .await
+            .map_err(Error::BadRequest)?;
+    Ok(Json(updated))
 }
 
-#[utoipa::path(post, path = "/api/records/{id}/archive", security(("bearer" = [])), responses((status = 200, body = Record)))]
+/// `POST /rec/:kind/:code/archive` — archive (`true`) or restore (`false`).
 #[debug_handler]
-pub async fn archive(
+pub async fn set_archived(
     auth: AuthUser,
     State(ctx): State<AppContext>,
-    Path(id): Path<Uuid>,
-) -> Result<Response> {
-    change(auth, ctx, id, None, "archived").await
+    Path((kind, code)): Path<(String, String)>,
+    Json(body): Json<Value>,
+) -> Result<Json<Value>> {
+    table_for(&kind)?;
+    let access = access_of(&ctx, &auth, &kind).await?;
+    let existing = rec_store::get_by_code(&ctx.db, &kind, &code)
+        .await?
+        .ok_or(Error::NotFound)?;
+    match &access {
+        Access::All => {
+            if !manages(&auth, &kind) {
+                return Err(forbidden(
+                    "records:manage",
+                    "You do not have access to this.",
+                ));
+            }
+        }
+        Access::Own(ids) => {
+            if !is_own(ids, &existing, SUBJECT_KEYS) {
+                return not_found();
+            }
+        }
+    }
+    let archived = match body {
+        Value::Bool(b) => b,
+        Value::Object(o) => o
+            .get("archived")
+            .and_then(Value::as_bool)
+            .unwrap_or(true),
+        _ => true,
+    };
+    rec_store::set_archived(&ctx.db, &kind, &code, archived)
+        .await
+        .map_err(Error::BadRequest)?;
+    match rec_store::get_by_code(&ctx.db, &kind, &code).await? {
+        Some(r) => Ok(Json(r)),
+        None => not_found(),
+    }
 }
 
-#[utoipa::path(post, path = "/api/records/{id}/restore", security(("bearer" = [])), responses((status = 200, body = Record)))]
+/// `GET /rec/:kind/export` — CSV of every visible row.
 #[debug_handler]
-pub async fn restore(
+pub async fn export_records(
     auth: AuthUser,
     State(ctx): State<AppContext>,
-    Path(id): Path<Uuid>,
-) -> Result<Response> {
-    change(auth, ctx, id, None, "restored").await
+    Path(kind): Path<String>,
+    Query(q): Query<ListQuery>,
+) -> Result<axum::response::Response> {
+    let def = def_for(&kind)?;
+    let t = table_for(&kind)?;
+    let access = access_of(&ctx, &auth, &kind).await?;
+    let rows = scope(
+        &access,
+        load_rows(&ctx, def, t, q.archived.unwrap_or(false)).await?,
+    );
+
+    let mut keys = vec!["code".to_string(), "archived".to_string()];
+    keys.extend(rec_store::field_keys(def, t));
+    let mut csv = keys.join(",") + "\n";
+    for row in &rows {
+        let line: Vec<String> = keys
+            .iter()
+            .map(|k| csv_cell(row.get(k).unwrap_or(&Value::Null)))
+            .collect();
+        csv.push_str(&line.join(","));
+        csv.push('\n');
+    }
+
+    let response = axum::response::Response::builder()
+        .header("Content-Type", "text/csv; charset=utf-8")
+        .header(
+            "Content-Disposition",
+            format!("attachment; filename=\"{kind}_export.csv\""),
+        )
+        .body(axum::body::Body::from(csv))
+        .map_err(|e| Error::string(&e.to_string()))?;
+    Ok(response)
 }
 
-#[utoipa::path(get, path = "/api/records/{id}/history", security(("bearer" = [])), responses((status = 200, body = [HistoryEntry])))]
-#[debug_handler]
-pub async fn history(
-    auth: AuthUser,
-    State(ctx): State<AppContext>,
-    Path(id): Path<Uuid>,
-) -> Result<Response> {
-    require_hr(&auth)?;
-    let db = Database::from_context(&ctx)?;
-    let mut conn = db.get().await?;
-    let rows = sql_query("SELECT id, record_id, action, actor_user_id, before_data, after_data, created_at::text AS created_at FROM hr_record_history WHERE record_id=$1 ORDER BY id DESC LIMIT 500")
-        .bind::<SqlUuid,_>(id).load::<HistoryEntry>(&mut *conn).await.map_err(Database::map_error)?;
-    format::json(rows)
-}
-
-pub fn routes() -> Routes {
+fn build(prefix: &str) -> Routes {
     Routes::new()
-        .prefix("/api/records")
-        .add("/{record_type}", get(list).post(create).put(update))
-        .add("/{record_type}/archive", post(archive))
-        .add("/{record_type}/restore", post(restore))
-        .add("/{record_type}/history", get(history))
+        .prefix(prefix)
+        .add("/defs", get(list_kinds))
+        .add("/{kind}", get(list_records))
+        .add("/{kind}", post(create_record))
+        .add("/{kind}/export", get(export_records))
+        .add("/{kind}/{code}", get(get_record))
+        .add("/{kind}/{code}", put(update_record))
+        .add("/{kind}/{code}", patch(update_record))
+        .add("/{kind}/{code}/archive", post(set_archived))
+}
+
+/// `/api/v1/rec/*` — used by the SPA (axios `baseURL = /api/v1`).
+pub fn routes() -> Routes {
+    build("/api/v1/rec")
+}
+
+/// `/api/rec/*` — the path documented in PLAN.md.
+pub fn alt_routes() -> Routes {
+    build("/api/rec")
 }
