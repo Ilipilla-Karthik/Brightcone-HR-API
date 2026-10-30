@@ -21,19 +21,29 @@ fn is_float(pg: &str) -> bool {
 /// Convert a JSON value into a sea-orm value for the target pg type.
 fn bind(v: &Value, pg: &str) -> sea_orm::Value {
     if v.is_null() {
+        if is_int(pg) {
+            return sea_orm::Value::BigInt(None);
+        }
+        if is_float(pg) {
+            return sea_orm::Value::Double(None);
+        }
+        if pg.contains("bool") {
+            return sea_orm::Value::Bool(None);
+        }
         return sea_orm::Value::String(None);
     }
     if is_int(pg) || is_float(pg) {
-        let num = match v {
-            Value::Number(n) => n.as_f64().unwrap_or(0.0),
-            Value::Bool(b) => (*b as i64) as f64,
-            Value::String(s) => s.trim().parse::<f64>().unwrap_or(0.0),
-            _ => 0.0,
+        let num: Option<f64> = match v {
+            Value::Number(n) => n.as_f64(),
+            Value::Bool(b) => Some((*b as i64) as f64),
+            Value::String(s) => s.trim().parse::<f64>().ok(),
+            _ => None,
         };
-        return if is_int(pg) {
-            sea_orm::Value::BigInt(Some(num.round() as i64))
-        } else {
-            sea_orm::Value::Double(Some(num))
+        return match num {
+            Some(n) if is_int(pg) => sea_orm::Value::BigInt(Some(n.round() as i64)),
+            Some(n) => sea_orm::Value::Double(Some(n)),
+            None if is_int(pg) => sea_orm::Value::BigInt(None),
+            None => sea_orm::Value::Double(None),
         };
     }
     if pg.contains("bool") {
@@ -65,12 +75,12 @@ pub async fn next_code(db: &DatabaseConnection, kind: &str) -> Result<String, St
 }
 
 pub async fn next_code_for(db: &DatabaseConnection, t: &DynTable) -> Result<String, String> {
+    let col = quote_ident(t.code);
     let sql = format!(
-        "SELECT COALESCE(MAX(NULLIF(regexp_replace({}, '^\\\\D+', ''), '')::BIGINT), 0) AS n \
-         FROM public.{} WHERE {} LIKE '{}%'",
-        quote_ident(t.code),
+        r#"SELECT COALESCE(MAX(NULLIF(regexp_replace({}::TEXT, '^.*?([0-9]+)$', '\1'), '')::BIGINT), 0) AS n FROM public.{} WHERE {}::TEXT LIKE '{}%'"#,
+        col,
         quote_ident(t.table),
-        quote_ident(t.code),
+        col,
         t.prefix
     );
     let rows = db.query_all_raw(stmt(db, sql)).await.map_err(|e| e.to_string())?;
@@ -90,11 +100,16 @@ async fn fetch_by_code(
     types: &BTreeMap<String, String>,
 ) -> Result<Option<Value>, DbErr> {
     let def = kind_def(kind).ok_or_else(|| DbErr::Custom(format!("unknown kind '{}'", kind)))?;
+    let where_clause = if t.code != "code" && types.contains_key("code") {
+        format!("({} = $1 OR \"code\" = $1)", quote_ident(t.code))
+    } else {
+        format!("{} = $1", quote_ident(t.code))
+    };
     let sql = format!(
-        "SELECT {} FROM public.{} WHERE {} = $1",
+        "SELECT {} FROM public.{} WHERE {}",
         super::select_list(def, t, true).join(", "),
         quote_ident(t.table),
-        quote_ident(t.code)
+        where_clause
     );
     let st = Statement::from_sql_and_values(
         db.get_database_backend(),
@@ -156,17 +171,33 @@ pub async fn create_rec(
         cols.push(quote_ident(&col));
         vals.push(bind(raw, pg));
     }
+    if types.contains_key("code") && t.code != "code" {
+        cols.push("\"code\"".to_string());
+        vals.push(sea_orm::Value::String(Some(code.clone())));
+    }
     let n = cols.len();
-    let mut sql = format!(
-        "INSERT INTO public.{} ({}) VALUES (",
-        quote_ident(t.table),
-        cols.join(", ")
-    );
     let mut placeholders: Vec<String> = (1..=n).map(|i| format!("${}", i)).collect();
-    placeholders.push("CURRENT_TIMESTAMP".into());
-    placeholders.push("CURRENT_TIMESTAMP".into());
-    sql.push_str(&placeholders.join(", "));
-    sql.push(')');
+    if types.contains_key("created_at") {
+        cols.push("\"created_at\"".into());
+        placeholders.push("CURRENT_TIMESTAMP".into());
+    }
+    if types.contains_key("updated_at") {
+        cols.push("\"updated_at\"".into());
+        placeholders.push("CURRENT_TIMESTAMP".into());
+    }
+    for (col_name, col_type) in types.iter() {
+        let qi = quote_ident(col_name);
+        if col_type == "uuid" && !cols.contains(&qi) {
+            cols.push(qi);
+            placeholders.push("gen_random_uuid()".into());
+        }
+    }
+    let sql = format!(
+        "INSERT INTO public.{} ({}) VALUES ({})",
+        quote_ident(t.table),
+        cols.join(", "),
+        placeholders.join(", ")
+    );
     let st = Statement::from_sql_and_values(db.get_database_backend(), sql, vals);
     db.execute_raw(st).await.map_err(|e| e.to_string())?;
     fetch_by_code(db, kind, t, &code, &types)
@@ -211,9 +242,16 @@ pub async fn update_rec(
         .enumerate()
         .map(|(i, c)| format!("{} = ${}", c, i + 1))
         .collect();
-    sets.push(format!("updated_at = CURRENT_TIMESTAMP"));
+    if types.contains_key("updated_at") {
+        sets.push("\"updated_at\" = CURRENT_TIMESTAMP".to_string());
+    }
     sql.push_str(&sets.join(", "));
-    sql.push_str(&format!(" WHERE {} = ${}", quote_ident(t.code), idx + 1));
+    let where_clause = if t.code != "code" && types.contains_key("code") {
+        format!(" WHERE ({} = ${} OR \"code\" = ${})", quote_ident(t.code), idx + 1, idx + 1)
+    } else {
+        format!(" WHERE {} = ${}", quote_ident(t.code), idx + 1)
+    };
+    sql.push_str(&where_clause);
     vals.push(sea_orm::Value::String(Some(code.to_string())));
     let st = Statement::from_sql_and_values(db.get_database_backend(), sql, vals);
     db.execute_raw(st).await.map_err(|e| e.to_string())?;
@@ -231,10 +269,16 @@ pub async fn set_archived(
     archived: bool,
 ) -> Result<(), String> {
     let t = table_for_kind(kind).ok_or_else(|| format!("unknown kind '{}'", kind))?;
+    let types = types_for(db, t).await?;
+    let where_clause = if t.code != "code" && types.contains_key("code") {
+        format!("({} = $2 OR \"code\" = $2)", quote_ident(t.code))
+    } else {
+        format!("{} = $2", quote_ident(t.code))
+    };
     let sql = format!(
-        "UPDATE public.{} SET archived = $1 WHERE {} = $2",
+        "UPDATE public.{} SET archived = $1 WHERE {}",
         quote_ident(t.table),
-        quote_ident(t.code)
+        where_clause
     );
     let st = Statement::from_sql_and_values(
         db.get_database_backend(),

@@ -68,7 +68,7 @@ async fn table_exists(db: &DatabaseConnection, table: &str) -> Result<bool, Box<
 fn create_table_sql(t: &DynTable) -> String {
     let mut cols = vec![
         "\"id\" BIGSERIAL PRIMARY KEY".to_string(),
-        format!("{} VARCHAR(64) NOT NULL", quote_ident(t.code)),
+        format!("{} VARCHAR(64) DEFAULT ''", quote_ident(t.code)),
         "\"archived\" BOOLEAN NOT NULL DEFAULT FALSE".to_string(),
         "\"history\" TEXT".to_string(),
     ];
@@ -78,10 +78,9 @@ fn create_table_sql(t: &DynTable) -> String {
             continue;
         }
         cols.push(format!(
-            "{} {}{}",
+            "{} {}",
             quote_ident(c.name),
-            sql_type(c.sql),
-            if c.req == 1 { " NOT NULL" } else { "" }
+            sql_type(c.sql)
         ));
     }
     cols.push("\"created_at\" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP".to_string());

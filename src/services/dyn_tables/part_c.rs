@@ -237,7 +237,7 @@ pub static GOALS_COLS: &[DynCol] = &[
   DynCol { name: "created_at", sql: "tstz", req: 0 },
   DynCol { name: "updated_at", sql: "tstz", req: 0 },
 ];
-pub static GOALS_TABLE: DynTable = DynTable { table: "performance_goals", kind: "goals", code: "goal_id", ext: true, prefix: "GL-", pad: 3, map: &[("title","title"),("due","target_date"),("progress","progress_percentage"),("status","status")], cols: GOALS_COLS };
+pub static GOALS_TABLE: DynTable = DynTable { table: "performance_goals", kind: "goals", code: "code", ext: true, prefix: "GL-", pad: 3, map: &[("title","title"),("due","target_date"),("progress","progress_percentage"),("status","status")], cols: GOALS_COLS };
 
 pub static RECOG_COLS: &[DynCol] = &[
   DynCol { name: "archived", sql: "bool", req: 0 },
