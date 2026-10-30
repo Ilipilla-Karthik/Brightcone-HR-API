@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use loco_rs::{
     app::{AppContext, Hooks, Initializer},
     bgworker::{BackgroundWorker, Queue},
-    boot::{create_app, BootResult, StartMode},
+    boot::{BootResult, StartMode},
     config::Config,
     controller::AppRoutes,
     db::truncate_table,
@@ -10,7 +10,6 @@ use loco_rs::{
     task::Tasks,
     Result,
 };
-use migration::Migrator;
 use std::path::Path;
 
 #[allow(unused_imports)]
@@ -42,7 +41,13 @@ impl Hooks for App {
         environment: &Environment,
         config: Config,
     ) -> Result<BootResult> {
-        create_app::<Self, Migrator>(mode, environment, config).await
+        // Migration-free boot: this project has no sea-orm migrations. The
+        // database connection is established by `create_context`, routes and
+        // workers are wired by `run_app`, and the database schema is
+        // synchronized entity-first by `initializers::schema_sync` during
+        // `after_routes` (additive, non-destructive).
+        let app_context = loco_rs::boot::create_context::<Self>(environment, config).await?;
+        loco_rs::boot::run_app::<Self>(&mode, app_context).await
     }
 
     async fn initializers(_ctx: &AppContext) -> Result<Vec<Box<dyn Initializer>>> {
@@ -96,6 +101,8 @@ impl Hooks for App {
             .add_route(controllers::expenses::office_routes())
             .add_route(controllers::policy_acknowledgements::routes())
             .add_route(controllers::vendors::routes())
+            .add_route(controllers::records::routes())
+            .add_route(controllers::records::alt_routes())
             .add_route(controllers::recognitions::routes())
             .add_route(controllers::events::legacy_routes())
             .add_route(controllers::celebrations::legacy_routes())

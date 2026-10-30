@@ -1,8 +1,7 @@
-use backend::app::App;
-use loco_rs::cli;
-use migration::Migrator;
+//! Thin wrapper around the migration-free CLI runner (maintenance tool).
+use backend::cli_start;
 
 #[tokio::main]
 async fn main() -> loco_rs::Result<()> {
-    cli::main::<App, Migrator>().await
+    cli_start::run().await
 }

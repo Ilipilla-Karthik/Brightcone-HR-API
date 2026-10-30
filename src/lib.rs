@@ -1,4 +1,6 @@
 pub mod app;
+pub mod authz;
+pub mod cli_start;
 pub mod controllers;
 pub mod data;
 pub mod dtos;
