@@ -13,6 +13,7 @@ pub struct EmployeeFilter {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct EmployeeParams {
+    #[serde(default)]
     pub employee_code: String,
     pub full_name: String,
     pub job_title: String,
