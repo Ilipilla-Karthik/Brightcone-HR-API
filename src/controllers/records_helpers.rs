@@ -178,15 +178,21 @@ pub async fn load_rows(
     t: &DynTable,
     archived: bool,
 ) -> Result<Vec<Value>> {
+    let where_clause = if archived {
+        "\"archived\" = TRUE"
+    } else {
+        "(\"archived\" = FALSE OR \"archived\" IS NULL)"
+    };
     let sql = format!(
-        "SELECT {} FROM public.{} WHERE \"archived\" = $1 ORDER BY \"id\" DESC",
+        "SELECT {} FROM public.{} WHERE {} ORDER BY \"id\" DESC",
         rec_store::select_list(def, t, false).join(", "),
-        rec_store::quote_ident(t.table)
+        rec_store::quote_ident(t.table),
+        where_clause
     );
     let st = Statement::from_sql_and_values(
         ctx.db.get_database_backend(),
         sql,
-        [sea_orm::Value::Bool(Some(archived))],
+        [],
     );
     let rows = ctx.db.query_all_raw(st).await?;
     let types = rec_store::col_types(&ctx.db, t.table).await?;
